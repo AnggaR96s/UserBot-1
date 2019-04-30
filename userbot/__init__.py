@@ -14,7 +14,6 @@ from distutils.util import strtobool as sb
 from dotenv import load_dotenv
 from requests import get
 from telethon import TelegramClient
-from telethon.sessions import StringSession
 
 load_dotenv("config.env")
 
@@ -52,8 +51,6 @@ API_KEY = os.environ.get("API_KEY", None)
 
 API_HASH = os.environ.get("API_HASH", None)
 
-STRING_SESSION = os.environ.get("STRING_SESSION", None)
-
 LOGGER_GROUP = int(os.environ.get("LOGGER_GROUP", "0"))
 
 LOGGER = sb(os.environ.get(
@@ -86,8 +83,7 @@ SPOTIFY_BIO_PREFIX = os.environ.get("SPOTIFY_BIO_PREFIX", None)
 DEFAULT_BIO = os.environ.get("DEFAULT_BIO", None)
 
 # pylint: disable=invalid-name
-bot = TelegramClient(StringSession(STRING_SESSION), API_KEY, API_HASH)
-
+bot = TelegramClient("userbot", API_KEY, API_HASH)
 if os.path.exists("learning-data-root.check"):
     os.remove("learning-data-root.check")
 else:
