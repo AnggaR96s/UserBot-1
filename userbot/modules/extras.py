@@ -1,3 +1,9 @@
+import bs4
+import requests
+import os
+import time
+import random
+from datetime import datetime, timedelta
 import asyncio, subprocess
 import time, re, io
 from userbot import bot, LOGGER, LOGGER_GROUP, HELPER
@@ -28,6 +34,41 @@ async def fun(e):
     for j in range(10):
         t = t[:-1] + "_;"
         await e.edit(t)
+@register(outgoing=True, pattern="^.smk (.*)")
+async def smrk(smk):
+        if not smk.text[0].isalpha() and smk.text[0] not in ("/", "#", "@", "!"):
+            textx = await smk.get_reply_message()
+            message = smk.text
+        if message[5:]:
+            message = str(message[5:])
+        elif textx:
+            message = textx
+            message = str(message.message)
+        if message == 'dele':
+            await smk.edit( message +'te the hell' +"ツ" )
+            await smk.edit("ツ")
+        else:
+             smirk = " ツ"
+             reply_text = message + smirk
+             await smk.edit(reply_text)
+
+@register(outgoing=True, pattern="^.lfy (.*)",)
+async def let_me_google_that_for_you(lmgtfy_q):
+    if not lmgtfy_q.text[0].isalpha() and lmgtfy_q.text[0] not in ("/", "#", "@", "!"):
+        textx = await lmgtfy_q.get_reply_message()
+        query = lmgtfy_q.text
+        if query[5:]:
+            query = str(query[5:])
+        elif textx:
+            query = textx
+            query = query.message
+        reply_text = 'http://lmgtfy.com/?s=g&iie=1&q=' + query.replace(" ", "+")
+        await lmgtfy_q.edit(reply_text)
+        if LOGGER:
+            await bot.send_message(
+                LOGGER_GROUP,
+                "LMGTFY query " + query + " was executed successfully",
+            )
 
 @register(outgoing=True, pattern="^Oof$")
 async def Oof(e):
