@@ -58,7 +58,7 @@ async def paste(pstl):
             )
 
 
-@register(outgoing=True, pattern="^.get_dogbin_content")
+@register(outgoing=True, pattern="^.getpaste")
 async def get_dogbin_content(dog_url):
     """ For .get_dogbin_content command, fetches the content of a dogbin URL. """
     if not dog_url.text[0].isalpha() and dog_url.text[0] not in ("/", "#", "@", "!"):
@@ -104,7 +104,7 @@ HELPER.update({
     "paste": "Create a paste or a shortened url using dogbin (https://del.dog/)"
 })
 HELPER.update({
-    "get_dogbin_content": "Get the content of a paste or shortened url from dogbin (https://del.dog/)"
+    "getpaste": "Get the content of a paste or shortened url from dogbin (https://del.dog/)"
 })
 HELPER.update({
     "pastestats": "Get stats of a paste or shortened url from dogbin (https://del.dog/)"
