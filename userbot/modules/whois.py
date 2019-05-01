@@ -17,7 +17,7 @@ from userbot.events import register
 TMP_DOWNLOAD_DIRECTORY = os.environ.get("TMP_DOWNLOAD_DIRECTORY", "./")
 
 
-@register(pattern=".whois(?: |$)(.*)", outgoing=True)
+@register(pattern=".info(?: |$)(.*)", outgoing=True)
 async def who(event):
     """ For .whois command, get info about a user. """
     if event.fwd_from:
@@ -121,6 +121,6 @@ async def fetch_info(replied_user, event):
     return photo, caption
 
 HELPER.update({
-    "whois": ".whois <username> or reply to someones text with .whois\
+    "whois": ".info <username> or reply to someones text with .whois\
     \nUsage: Gets info of an user."
 })
