@@ -59,7 +59,7 @@ async def paste(pstl):
 
 
 @register(outgoing=True, pattern="^.getpaste")
-async def get_dogbin_content(dog_url):
+async def getpaste(dog_url):
     """ For .get_dogbin_content command, fetches the content of a dogbin URL. """
     if not dog_url.text[0].isalpha() and dog_url.text[0] not in ("/", "#", "@", "!"):
         textx = await dog_url.get_reply_message()
