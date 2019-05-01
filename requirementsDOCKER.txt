@@ -23,3 +23,6 @@ zalgo_text>=0.6
 spotify_token
 lmgtfy-cli
 lmgtfy
+emoji
+lxml
+lmdb
