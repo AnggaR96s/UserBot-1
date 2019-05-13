@@ -51,6 +51,8 @@ API_KEY = os.environ.get("API_KEY", None)
 
 API_HASH = os.environ.get("API_HASH", None)
 
+STRING_SESSION = os.environ.get("STRING_SESSION", None)
+
 LOGGER_GROUP = int(os.environ.get("LOGGER_GROUP", "0"))
 
 LOGGER = sb(os.environ.get(

@@ -121,6 +121,6 @@ async def fetch_info(replied_user, event):
     return photo, caption
 
 HELPER.update({
-    "whois": ".info <username> or reply to someones text with .whois\
+    "whois": ".info <username> or reply to someones text with .info\
     \nUsage: Gets info of an user."
 })
