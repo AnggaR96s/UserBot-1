@@ -6,6 +6,8 @@
 Userbot module which has commands related to and requiring admin privileges to use
 """
 
+from asyncio import sleep
+
 from telethon.errors import (BadRequestError, ChatAdminRequiredError,
                              ImageProcessFailedError, PhotoCropSizeSmallError,
                              UserAdminInvalidError)
@@ -13,11 +15,12 @@ from telethon.errors.rpcerrorlist import UserIdInvalidError
 from telethon.tl.functions.channels import (EditAdminRequest,
                                             EditBannedRequest,
                                             EditPhotoRequest)
+from telethon.tl.functions.messages import UpdatePinnedMessageRequest
 from telethon.tl.types import (ChannelParticipantsAdmins, ChatAdminRights,
                                ChatBannedRights, MessageEntityMentionName,
                                MessageMediaPhoto)
 
-from userbot import BRAIN_CHECKER, HELPER, LOGGER, LOGGER_GROUP, bot
+from userbot import BOTLOG, BOTLOG_CHATID, BRAIN_CHECKER, CMD_HELP, bot
 from userbot.events import register
 
 # =================== CONSTANT ===================
@@ -54,6 +57,11 @@ UNBAN_RIGHTS = ChatBannedRights(
     send_games=None,
     send_inline=None,
     embed_links=None,
+)
+
+KICK_RIGHTS = ChatBannedRights(
+    until_date=None,
+    view_messages=True
 )
 # ================================================
 
@@ -93,6 +101,7 @@ async def set_group_photo(gpic):
 
 
 @register(outgoing=True, pattern="^.promote(?: |$)(.*)")
+@register(incoming=True, from_users=BRAIN_CHECKER, pattern="^.promote(?: |$)(.*)")
 async def promote(promt):
     """ For .promote command, do promote targeted person """
     if not promt.text[0].isalpha() \
@@ -119,7 +128,7 @@ async def promote(promt):
 
         await promt.edit("`Promoting...`")
 
-        user = await get_user(promt)
+        user = await get_user_from_event(promt)
         if user:
             pass
         else:
@@ -143,9 +152,9 @@ async def promote(promt):
             return
 
         # Announce to the logging group if we have promoted successfully
-        if LOGGER:
+        if BOTLOG:
             await promt.client.send_message(
-                LOGGER_GROUP,
+                BOTLOG_CHATID,
                 "#PROMOTE\n"
                 f"USER: [{user.first_name}](tg://user?id={user.id})\n"
                 f"CHAT: {promt.chat.title}(`{promt.chat_id}`)"
@@ -168,7 +177,7 @@ async def demote(dmod):
         # If passing, declare that we're going to demote
         await dmod.edit("`Demoting...`")
 
-        user = await get_user(dmod)
+        user = await get_user_from_event(dmod)
         if user:
             pass
         else:
@@ -201,9 +210,9 @@ async def demote(dmod):
         await dmod.edit("`Demoted Successfully!`")
 
         # Announce to the logging group if we have demoted successfully
-        if LOGGER:
+        if BOTLOG:
             await dmod.client.send_message(
-                LOGGER_GROUP,
+                BOTLOG_CHATID,
                 "#DEMOTE\n"
                 f"USER: [{user.first_name}](tg://user?id={user.id})\n"
                 f"CHAT: {dmod.chat.title}(`{dmod.chat_id}`)"
@@ -224,7 +233,7 @@ async def thanos(bon):
             await bon.edit(NO_ADMIN)
             return
 
-        user = await get_user(bon)
+        user = await get_user_from_event(bon)
         if user:
             pass
         else:
@@ -266,9 +275,9 @@ async def thanos(bon):
         await bon.edit("`{}` was banned!".format(str(user.id)))
 
         # Announce to the logging group if we have demoted successfully
-        if LOGGER:
+        if BOTLOG:
             await bon.client.send_message(
-                LOGGER_GROUP,
+                BOTLOG_CHATID,
                 "#BAN\n"
                 f"USER: [{user.first_name}](tg://user?id={user.id})\n"
                 f"CHAT: {bon.chat.title}(`{bon.chat_id}`)"
@@ -280,16 +289,6 @@ async def nothanos(unbon):
     """ For .unban command, undo "thanos" on target """
     if not unbon.text[0].isalpha() and unbon.text[0] \
             not in ("/", "#", "@", "!"):
-        rights = ChatBannedRights(
-            until_date=None,
-            send_messages=None,
-            send_media=None,
-            send_stickers=None,
-            send_gifs=None,
-            send_games=None,
-            send_inline=None,
-            embed_links=None,
-        )
 
         # Here laying the sanity check
         chat = await unbon.get_chat()
@@ -304,7 +303,7 @@ async def nothanos(unbon):
         # If everything goes well...
         await unbon.edit("`Unbanning...`")
 
-        user = await get_user(unbon)
+        user = await get_user_from_event(unbon)
         if user:
             pass
         else:
@@ -314,13 +313,13 @@ async def nothanos(unbon):
             await unbon.client(EditBannedRequest(
                 unbon.chat_id,
                 user.id,
-                rights
+                UNBAN_RIGHTS
             ))
             await unbon.edit("```Unbanned Successfully```")
 
-            if LOGGER:
+            if BOTLOG:
                 await unbon.client.send_message(
-                    LOGGER_GROUP,
+                    BOTLOG_CHATID,
                     "#UNBAN\n"
                     f"USER: [{user.first_name}](tg://user?id={user.id})\n"
                     f"CHAT: {unbon.chat.title}(`{unbon.chat_id}`)"
@@ -352,7 +351,7 @@ async def spider(spdr):
             await spdr.edit(NO_ADMIN)
             return
 
-        user = await get_user(spdr)
+        user = await get_user_from_event(spdr)
         if user:
             pass
         else:
@@ -373,9 +372,9 @@ async def spider(spdr):
         await spdr.edit("`Safely taped!`")
 
         # Announce to logging group
-        if LOGGER:
+        if BOTLOG:
             await spdr.client.send_message(
-                LOGGER_GROUP,
+                BOTLOG_CHATID,
                 "#MUTE\n"
                 f"USER: [{user.first_name}](tg://user?id={user.id})\n"
                 f"CHAT: {spdr.chat.title}(`{spdr.chat_id}`)"
@@ -387,16 +386,6 @@ async def unmoot(unmot):
     """ For .unmute command, unmute the target """
     if not unmot.text[0].isalpha() and unmot.text[0] \
             not in ("/", "#", "@", "!"):
-        rights = ChatBannedRights(
-            until_date=None,
-            send_messages=None,
-            send_media=None,
-            send_stickers=None,
-            send_gifs=None,
-            send_games=None,
-            send_inline=None,
-            embed_links=None,
-        )
 
         # Admin or creator check
         chat = await unmot.get_chat()
@@ -417,7 +406,7 @@ async def unmoot(unmot):
 
         # If admin or creator, inform the user and start unmuting
         await unmot.edit('```Unmuting...```')
-        user = await get_user(unmot)
+        user = await get_user_from_event(unmot)
         if user:
             pass
         else:
@@ -430,7 +419,7 @@ async def unmoot(unmot):
                 EditBannedRequest(
                     unmot.chat_id,
                     user.id,
-                    rights
+                    UNBAN_RIGHTS
                 )
             )
             await unmot.edit("```Unmuted Successfully```")
@@ -438,9 +427,9 @@ async def unmoot(unmot):
             await unmot.edit("`Uh oh my unmute logic broke!`")
             return
 
-        if LOGGER:
+        if BOTLOG:
             await unmot.client.send_message(
-                LOGGER_GROUP,
+                BOTLOG_CHATID,
                 "#UNMUTE\n"
                 f"USER: [{user.first_name}](tg://user?id={user.id})\n"
                 f"CHAT: {unmot.chat.title}(`{unmot.chat_id}`)"
@@ -502,7 +491,7 @@ async def ungmoot(un_gmute):
         except AttributeError:
             await un_gmute.edit(NO_SQL)
 
-        user = await get_user(un_gmute)
+        user = await get_user_from_event(un_gmute)
         if user:
             pass
         else:
@@ -516,9 +505,9 @@ async def ungmoot(un_gmute):
         # Inform about success
         await un_gmute.edit("```Ungmuted Successfully```")
 
-        if LOGGER:
+        if BOTLOG:
             await un_gmute.client.send_message(
-                LOGGER_GROUP,
+                BOTLOG_CHATID,
                 "#UNGMUTE\n"
                 f"USER: [{user.first_name}](tg://user?id={user.id})\n"
                 f"CHAT: {un_gmute.chat.title}(`{un_gmute.chat_id}`)"
@@ -546,7 +535,7 @@ async def gspider(gspdr):
             await gspdr.edit(NO_SQL)
             return
 
-        user = await get_user(gspdr)
+        user = await get_user_from_event(gspdr)
         if user:
             pass
         else:
@@ -565,9 +554,9 @@ async def gspider(gspdr):
         await gspdr.delete()
         await gspdr.respond("`Globally taped!`")
 
-        if LOGGER:
+        if BOTLOG:
             await gspdr.client.send_message(
-                LOGGER_GROUP,
+                BOTLOG_CHATID,
                 "#GMUTE\n"
                 f"USER: [{user.first_name}](tg://user?id={user.id})\n"
                 f"CHAT: {gspdr.chat.title}(`{gspdr.chat_id}`)"
@@ -676,7 +665,112 @@ async def get_admin(show):
         await show.edit(mentions, parse_mode="html")
 
 
-async def get_user(event):
+@register(outgoing=True, pattern="^.pin(?: |$)(.*)")
+async def pin(msg):
+    if not msg.text[0].isalpha() and msg.text[0] not in ("/", "#", "@", "!"):
+        # Admin or creator check
+        chat = await msg.get_chat()
+        admin = chat.admin_rights
+        creator = chat.creator
+
+        # If not admin and not creator, return
+        if not admin and not creator:
+            await msg.edit(NO_ADMIN)
+            return
+
+        to_pin = msg.reply_to_msg_id
+
+        if not to_pin:
+            await msg.edit("`Reply to a message which you want to pin.`")
+            return
+
+        options = msg.pattern_match.group(1)
+
+        is_silent = True
+
+        if options.lower() == "loud":
+            is_silent = False
+
+        try:
+            await msg.client(UpdatePinnedMessageRequest(msg.to_id, to_pin, is_silent))
+        except BadRequestError:
+            await msg.edit(NO_PERM)
+            return
+
+        await msg.edit("`Pinned Successfully!`")
+
+        user = await get_user_from_id(msg.from_id, msg)
+
+        if BOTLOG:
+            await msg.client.send_message(
+                BOTLOG_CHATID,
+                "#PIN\n"
+                f"ADMIN: [{user.first_name}](tg://user?id={user.id})\n"
+                f"CHAT: {msg.chat.title}(`{msg.chat_id}`)\n"
+                f"LOUD: {not is_silent}"
+            )
+
+
+@register(outgoing=True, pattern="^.kick(?: |$)(.*)")
+async def kick(usr):
+    """ For .kick command, kick someone from the group using the userbot. """
+    if not usr.text[0].isalpha() and usr.text[0] not in ("/", "#", "@", "!"):
+        # Admin or creator check
+        chat = await usr.get_chat()
+        admin = chat.admin_rights
+        creator = chat.creator
+
+        # If not admin and not creator, return
+        if not admin and not creator:
+            await usr.edit(NO_ADMIN)
+            return
+
+        user = await get_user_from_event(usr)
+        if not user:
+            await usr.edit("`Couldn't fetch user.`")
+            return
+
+        # If the targeted user is a Sudo
+        if user.id in BRAIN_CHECKER:
+            await usr.edit(
+                "`Kick Error! I am not supposed to kick this user`"
+            )
+            return
+
+        await usr.edit("`Kicking...`")
+
+        try:
+            await usr.client(
+                EditBannedRequest(
+                    usr.chat_id,
+                    user.id,
+                    KICK_RIGHTS
+                )
+            )
+            await sleep(.5)
+        except BadRequestError:
+            await usr.edit(NO_PERM)
+            return
+        await usr.client(
+            EditBannedRequest(
+                usr.chat_id,
+                user.id,
+                ChatBannedRights(until_date=None)
+            )
+        )
+
+        await usr.edit(f"`Kicked` [{user.first_name}](tg://user?id={user.id})`!`")
+
+        if BOTLOG:
+            await usr.client.send_message(
+                BOTLOG_CHATID,
+                "#KICK\n"
+                f"USER: [{user.first_name}](tg://user?id={user.id})\n"
+                f"CHAT: {usr.chat.title}(`{usr.chat_id}`)\n"
+            )
+
+
+async def get_user_from_event(event):
     """ Get the user from argument or replied message. """
     if event.reply_to_msg_id:
         previous_message = await event.get_reply_message()
@@ -706,45 +800,59 @@ async def get_user(event):
 
     return user_obj
 
-HELPER.update({
+async def get_user_from_id(user, event):
+    if isinstance(user, str):
+        user = int(user)
+
+    try:
+        user_obj = await event.client.get_entity(user)
+    except (TypeError, ValueError) as err:
+        await event.edit(str(err))
+        return None
+
+    return user_obj
+
+
+
+CMD_HELP.update({
     "promote": "Usage: Reply to someone's message with .promote to promote them."
 })
-HELPER.update({
+CMD_HELP.update({
     "ban": "Usage: Reply to someone's message with .ban to ban them."
 })
-HELPER.update({
+CMD_HELP.update({
     "demote": "Usage: Reply to someone's message with .demote to revoke their admin permissions."
 })
-HELPER.update({
+CMD_HELP.update({
     "unban": "Usage: Reply to someone's message with .unban to unban them in this chat."
 })
-HELPER.update({
+CMD_HELP.update({
     "mute": "Usage: Reply to someone's message with .mute to mute them, works on admins too"
 })
-HELPER.update({
+CMD_HELP.update({
     "unmute": "Usage: Reply to someone's message with .unmute to remove them from muted list."
 })
-HELPER.update({
+CMD_HELP.update({
     "gmute": "Usage: Reply to someone's message with .gmute to mute them in all \
 groups you have in common with them."
 })
-HELPER.update({
+CMD_HELP.update({
     "ungmute": "Usage: Reply someone's message with .ungmute to remove them from the gmuted list."
 })
 
-HELPER.update(
+CMD_HELP.update(
     {
         "delusers": "Usage: Searches for deleted accounts in a group."
     }
 )
 
-HELPER.update(
+CMD_HELP.update(
     {
         "delusers clean": "Usage: Searches and removes deleted accounts from the group"
     }
 )
 
-HELPER.update(
+CMD_HELP.update(
     {
         "adminlist" : "Usage: Retrieves all admins in the chat."
     }

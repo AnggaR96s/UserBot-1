@@ -11,7 +11,7 @@ import os
 
 from telethon.tl.functions.users import GetFullUserRequest
 from telethon.tl.types import MessageEntityMentionName
-from userbot import HELPER
+from userbot import CMD_HELP
 from userbot.events import register
 
 TMP_DOWNLOAD_DIRECTORY = os.environ.get("TMP_DOWNLOAD_DIRECTORY", "./")
@@ -120,7 +120,7 @@ async def fetch_info(replied_user, event):
 
     return photo, caption
 
-HELPER.update({
-    "whois": ".info <username> or reply to someones text with .whois\
+CMD_HELP.update({
+    "whois": ".info <username> or reply to someones text with .info\
     \nUsage: Gets info of an user."
 })

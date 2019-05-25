@@ -1,14 +1,14 @@
 try:
     from userbot.modules.sql_helper import SESSION, BASE
 except ImportError:
-    raise Exception("Hello!")
+    raise AttributeError
 
-from sqlalchemy import Column, String, UnicodeText, Boolean, Integer, distinct, func
+from sqlalchemy import Column, String, UnicodeText
 
 
 class QuickPhrase(BASE):
     __tablename__ = "quickphrases"
-    resp = Column(String(10),primary_key=True)
+    resp = Column(String(10), primary_key=True)
     phrase = Column(UnicodeText, primary_key=True)
 
     def __init__(self, resp, phrase):

@@ -12,7 +12,7 @@ import urllib.request
 
 from PIL import Image
 from telethon.tl.types import DocumentAttributeFilename, MessageMediaPhoto
-from userbot import bot, HELPER
+from userbot import bot, CMD_HELP
 from userbot.events import register
 
 
@@ -52,14 +52,14 @@ async def kang(args):
                 emoji = "🤔"
             pack = "1"
             if len(splat) == 3:
-                pack = splat[2]     #User sent both
+                pack = splat[2]  # User sent both
                 emoji = splat[1]
             elif len(splat) == 2:
                 if splat[1].isnumeric():
-                    #User wants to push into different pack, but is okay with thonk as emote.
+                    # User wants to push into different pack, but is okay with thonk as emote.
                     pack = int(splat[1])
                 else:
-                    #User sent just custom emote, wants to push to default pack
+                    # User sent just custom emote, wants to push to default pack
                     emoji = splat[1]
 
             packname = f"a{user.id}_by_{user.username}_{pack}"
@@ -129,6 +129,7 @@ async def kang(args):
                 parse_mode='md'
             )
 
+
 async def resize_photo(photo):
     """ Resize the given photo to 512x512 """
     image = Image.open(photo)
@@ -154,7 +155,7 @@ async def resize_photo(photo):
     return image
 
 
-HELPER.update({
+CMD_HELP.update({
     "kang": ".kang\
 \nUsage: Reply .kang to a sticker or an image to kang it to your userbot pack.\
 \n\n.kang [emoji('s)]\

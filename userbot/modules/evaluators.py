@@ -6,14 +6,12 @@
 
 """ Userbot module for executing code and terminal commands from Telegram. """
 
-import sys
 import asyncio
-import subprocess
 from getpass import getuser
+from os import remove
+from sys import executable
 
-# from userbot import *
-
-from userbot import HELPER, LOGGER, LOGGER_GROUP
+from userbot import CMD_HELP, BOTLOG, BOTLOG_CHATID
 from userbot.events import register
 
 
@@ -49,7 +47,7 @@ async def evaluate(query):
                             reply_to=query.id,
                             caption="`Output too large, sending as file`",
                         )
-                        subprocess.run(["rm", "output.txt"], stdout=subprocess.PIPE)
+                        remove("output.txt")
                         return
                     await query.edit(
                         "**Query: **\n`"
@@ -72,13 +70,13 @@ async def evaluate(query):
                 f"`{err}`"
             )
 
-        if LOGGER:
+        if BOTLOG:
             await query.client.send_message(
-                LOGGER_GROUP, f"Eval query {expression} was executed successfully"
+                BOTLOG_CHATID, f"Eval query {expression} was executed successfully"
             )
 
 
-@register(outgoing=True, pattern=r"^.exec(?: |$)(.*)")
+@register(outgoing=True, pattern=r"^.exec(?: |$)([\s\S]*)")
 async def run(run_q):
     """ For .exec command, which executes the dynamically created program """
     if not run_q.text[0].isalpha() and run_q.text[0] not in ("/", "#", "@", "!"):
@@ -106,7 +104,7 @@ execute. Use .help exec for an example.```")
 
         command = "".join(f"\n {l}" for l in code.split("\n.strip()"))
         process = await asyncio.create_subprocess_exec(
-            sys.executable, '-c', command.strip(),
+            executable, '-c', command.strip(),
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
@@ -125,7 +123,7 @@ execute. Use .help exec for an example.```")
                     reply_to=run_q.id,
                     caption="`Output too large, sending as file`",
                 )
-                subprocess.run(["rm", "output.txt"], stdout=subprocess.PIPE)
+                remove("output.txt")
                 return
             await run_q.edit(
                 "**Query: **\n`"
@@ -141,9 +139,9 @@ execute. Use .help exec for an example.```")
                 "`\n**Result: **\n`No Result Returned/False`"
             )
 
-        if LOGGER:
+        if BOTLOG:
             await run_q.client.send_message(
-                LOGGER_GROUP,
+                BOTLOG_CHATID,
                 "Exec query " + codepre + " was executed successfully"
             )
 
@@ -154,6 +152,11 @@ async def terminal_runner(term):
     if not term.text[0].isalpha() and term.text[0] not in ("/", "#", "@", "!"):
         curruser = getuser()
         command = term.pattern_match.group(1)
+        try:
+            from os import geteuid
+            uid = geteuid()
+        except ImportError:
+            uid = "This ain't it chief!"
 
         if term.is_channel and not term.is_group:
             await term.edit("`Term commands aren't permitted on channels!`")
@@ -187,27 +190,36 @@ async def terminal_runner(term):
                 reply_to=term.id,
                 caption="`Output too large, sending as file`",
             )
-            subprocess.run(["rm", "output.txt"], stdout=subprocess.PIPE)
+            remove("output.txt")
             return
-        await term.edit(
-            "`"
-            f"{curruser}:~# {command}"
-            f"\n{result}"
-            "`"
-        )
 
-        if LOGGER:
+        if uid is 0:
+            await term.edit(
+                "`"
+                f"{curruser}:~# {command}"
+                f"\n{result}"
+                "`"
+            )
+        else:
+            await term.edit(
+                "`"
+                f"{curruser}:~$ {command}"
+                f"\n{result}"
+                "`"
+            )
+
+        if BOTLOG:
             await term.client.send_message(
-                LOGGER_GROUP,
+                BOTLOG_CHATID,
                 "Terminal Command " + command + " was executed sucessfully",
             )
 
-HELPER.update({
+CMD_HELP.update({
     "eval": ".eval 2 + 3\nUsage: Evalute mini-expressions."
 })
-HELPER.update({
+CMD_HELP.update({
     "exec": ".exec print('hello')\nUsage: Execute small python scripts."
 })
-HELPER.update({
+CMD_HELP.update({
     "term": ".term ls\nUsage: Run bash commands and scripts on your server."
 })

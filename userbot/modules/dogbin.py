@@ -2,13 +2,13 @@
 #
 # Licensed under the Raphielscape Public License, Version 1.b (the "License");
 # you may not use this file except in compliance with the License.
-#\
+#
 """ Userbot module containing commands for interacting with dogbin(https://del.dog)"""
 
 import json
 from requests import get, post
 
-from userbot import LOGGER, LOGGER_GROUP, HELPER
+from userbot import BOTLOG, BOTLOG_CHATID, CMD_HELP
 from userbot.events import register
 
 DOGBIN_URL = "https://del.dog/"
@@ -51,9 +51,9 @@ async def paste(pstl):
                 "`Failed to reach Dogbin`")
 
         await pstl.edit(reply_text)
-        if LOGGER:
+        if BOTLOG:
             await pstl.client.send_message(
-                LOGGER_GROUP,
+                BOTLOG_CHATID,
                 "Paste query `" + message + "` was executed successfully",
             )
 
@@ -94,18 +94,18 @@ async def get_dogbin_content(dog_url):
         reply_text = "`Fetched dogbin URL content successfully!`\n\n`Content:` " + resp.text
 
         await dog_url.reply(reply_text)
-        if LOGGER:
+        if BOTLOG:
             await dog_url.client.send_message(
-                LOGGER_GROUP,
+                BOTLOG_CHATID,
                 "Get dogbin content query for `" + message + "` was executed successfully",
             )
 
-HELPER.update({
+CMD_HELP.update({
     "paste": "Create a paste or a shortened url using dogbin (https://del.dog/)"
 })
-HELPER.update({
+CMD_HELP.update({
     "get_dogbin_content": "Get the content of a paste or shortened url from dogbin (https://del.dog/)"
 })
-HELPER.update({
+CMD_HELP.update({
     "pastestats": "Get stats of a paste or shortened url from dogbin (https://del.dog/)"
 })

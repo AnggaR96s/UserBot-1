@@ -9,9 +9,9 @@
 """ Userbot module for ScreenshotLayer API """
 
 import os
-import requests
+from requests import get
 
-from userbot import SCREENSHOT_LAYER_ACCESS_KEY, HELPER
+from userbot import SCREENSHOT_LAYER_ACCESS_KEY, CMD_HELP
 from userbot.events import register
 
 
@@ -28,7 +28,7 @@ async def capture(url):
         sample_url = "https://api.screenshotlayer.com/api/capture?access_key={}&\
             url={}&fullpage={}&format={}&viewport={}"
         input_str = url.pattern_match.group(1)
-        response_api = requests.get(
+        response_api = get(
             sample_url.format(
                 SCREENSHOT_LAYER_ACCESS_KEY, input_str, "1", "PNG", "2560x1440"
             ),
@@ -55,7 +55,7 @@ async def capture(url):
         else:
             await url.edit(response_api.text)
 
-HELPER.update({
+CMD_HELP.update({
     "screencapture": ".sc <url>\
     \nUsage: Takes a screenshot of a website and sends the screenshot."
 })

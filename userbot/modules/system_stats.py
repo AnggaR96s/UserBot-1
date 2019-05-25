@@ -12,13 +12,13 @@ from shutil import which
 
 from telethon import version
 
-from userbot import HELPER
+from userbot import CMD_HELP
 from userbot.events import register
 
 
-#================= CONSTANT =================
+# ================= CONSTANT =================
 DEFAULTUSER = uname().node
-#============================================
+# ============================================
 
 
 @register(outgoing=True, pattern="^.sysd$")
@@ -26,8 +26,7 @@ async def sysdetails(sysd):
     """ For .sysd command, get system info using neofetch. """
     if not sysd.text[0].isalpha() and sysd.text[0] not in ("/", "#", "@", "!"):
         try:
-            neo = "neofetch --off --color_blocks off --bold off --cpu_temp C \
-                    --cpu_speed on --cpu_cores physical --kernel_shorthand off --stdout"
+            neo = "neofetch --stdout"
             fetch = await asyncrunapp(
                 neo,
                 stdout=asyncPIPE,
@@ -155,19 +154,19 @@ async def amireallyalivereset(ureset):
             "`"
         )
 
-HELPER.update({
+CMD_HELP.update({
     "sysd": ".sysd\
     \nUsage: Shows system information using neofetch."
 })
-HELPER.update({
+CMD_HELP.update({
     "botver": ".botver\
     \nUsage: Shows the userbot version."
 })
-HELPER.update({
+CMD_HELP.update({
     "pip": ".pip <module(s)>\
     \nUsage: Does a search of pip modules(s)."
 })
-HELPER.update({
+CMD_HELP.update({
     "alive": ".alive\
     \nUsage: It's used to check if your bot is working or not. \
 Use .aliveu <new_user> to change user or .resetalive to reset .alive."

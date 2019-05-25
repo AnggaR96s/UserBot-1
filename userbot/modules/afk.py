@@ -9,11 +9,12 @@ import time
 
 from telethon.events import StopPropagation
 
-from userbot import (AFKREASON, COUNT_MSG, ISAFK, LOGGER, LOGGER_GROUP, USERS, HELPER)
+from userbot import (AFKREASON, COUNT_MSG, CMD_HELP, ISAFK, BOTLOG, BOTLOG_CHATID,
+                     USERS)
 from userbot.events import register
 
 
-@register(incoming=True)
+@register(incoming=True, disable_edited=True)
 async def mention_afk(mention):
     """ This function takes care of notifying the people who mention you that you are AFK."""
     global COUNT_MSG
@@ -42,7 +43,7 @@ async def mention_afk(mention):
                     COUNT_MSG = COUNT_MSG + 1
 
 
-@register(incoming=True)
+@register(incoming=True, disable_edited=True)
 async def afk_on_pm(sender):
     """ Function which informs people that you are AFK in PM """
     global ISAFK
@@ -82,8 +83,8 @@ async def set_afk(afk_e):
         await afk_e.edit("AFK AF!")
         if string != "":
             AFKREASON = string
-        if LOGGER:
-            await afk_e.client.send_message(LOGGER_GROUP, "You went AFK!")
+        if BOTLOG:
+            await afk_e.client.send_message(BOTLOG_CHATID, "You went AFK!")
         ISAFK = True
         raise StopPropagation
 
@@ -99,42 +100,42 @@ async def type_afk_is_not_true(notafk):
         ISAFK = False
         await notafk.respond("I'm no longer AFK.")
         afk_info = await notafk.respond(
-            "`You recieved "
-            + str(COUNT_MSG)
-            + " messages while you were away. Check log for more details.`"
-            + " `This auto-generated message shall be self destructed in 2 seconds.`"
+            "`You recieved " +
+            str(COUNT_MSG) +
+            " messages while you were away. Check log for more details.`" +
+            " `This auto-generated message shall be self destructed in 2 seconds.`"
         )
         time.sleep(2)
         await afk_info.delete()
-        if LOGGER:
+        if BOTLOG:
             await notafk.client.send_message(
-                LOGGER_GROUP,
-                "You've recieved "
-                + str(COUNT_MSG)
-                + " messages from "
-                + str(len(USERS))
-                + " chats while you were away",
+                BOTLOG_CHATID,
+                "You've recieved " +
+                str(COUNT_MSG) +
+                " messages from " +
+                str(len(USERS)) +
+                " chats while you were away",
             )
             for i in USERS:
                 name = await notafk.client.get_entity(i)
                 name0 = str(name.first_name)
                 await notafk.client.send_message(
-                    LOGGER_GROUP,
-                    "["
-                    + name0
-                    + "](tg://user?id="
-                    + str(i)
-                    + ")"
-                    + " sent you "
-                    + "`"
-                    + str(USERS[i])
-                    + " messages`",
+                    BOTLOG_CHATID,
+                    "[" +
+                    name0 +
+                    "](tg://user?id=" +
+                    str(i) +
+                    ")" +
+                    " sent you " +
+                    "`" +
+                    str(USERS[i]) +
+                    " messages`",
                 )
         COUNT_MSG = 0
         USERS = {}
         AFKREASON = "No Reason"
 
-HELPER.update({
+CMD_HELP.update({
     "afk": ".afk <reason>(reason is optional)\
 \nUsage: Sets you as afk. Responds to anyone who tags/PM's \
 you telling that you are afk. Switches off AFK when you type back anything.\

@@ -6,7 +6,7 @@
 
 """ Userbot module for muting chats. """
 
-from userbot import LOGGER, LOGGER_GROUP, HELPER
+from userbot import BOTLOG, BOTLOG_CHATID, CMD_HELP
 from userbot.events import register
 
 @register(outgoing=True, pattern="^.unmutechat$")
@@ -34,9 +34,9 @@ async def mute_chat(mute_e):
         await mute_e.edit(str(mute_e.chat_id))
         kread(str(mute_e.chat_id))
         await mute_e.edit("`Shush! This chat will be silenced!`")
-        if LOGGER:
+        if BOTLOG:
             await mute_e.client.send_message(
-                LOGGER_GROUP,
+                BOTLOG_CHATID,
                 str(mute_e.chat_id) + " was silenced.")
 
 
@@ -53,12 +53,12 @@ async def keep_read(message):
             if i.groupid == str(message.chat_id):
                 await message.client.send_read_acknowledge(message.chat_id)
 
-HELPER.update({
+CMD_HELP.update({
     'unmutechat': '.unmutechat\
 \nUsage: Unmutes a muted chat.'
 })
 
-HELPER.update({
+CMD_HELP.update({
     'mutechat': '.mutechat\
 \nUsage: Allows you to mute any chat.'
 })

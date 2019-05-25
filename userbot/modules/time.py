@@ -7,14 +7,17 @@
 """ Userbot module for getting the date and time of any country or the userbot server.  """
 
 from datetime import datetime as dt
-from pytz import country_names as c_n, country_timezones as c_tz, timezone as tz
-from userbot import HELPER
+
+from pytz import country_names as c_n
+from pytz import country_timezones as c_tz
+from pytz import timezone as tz
+
+from userbot import CMD_HELP
 from userbot.events import register
 
-
-#===== CONSTANT =====
+# ===== CONSTANT =====
 COUNTRY = ''
-#===== CONSTANT =====
+# ===== CONSTANT =====
 
 
 async def get_tz(con):
@@ -40,6 +43,7 @@ async def get_tz(con):
             return tz(c_tz[con][0])
     except KeyError:
         return
+
 
 @register(outgoing=True, pattern="^.time(?: |$)(.*)")
 async def time_func(tdata):
@@ -75,6 +79,7 @@ async def time_func(tdata):
 
         await tdata.edit(f"`It's`  **{dt.now(time_zone).strftime(t_form)}**  `in {c_name}`")
 
+
 @register(outgoing=True, pattern="^.date(?: |$)(.*)")
 async def date_func(dat):
     """ For .date command, return the date of
@@ -109,6 +114,7 @@ async def date_func(dat):
 
         await dat.edit(f"`It's`  **{dt.now().strftime(d_form)}**  `in {c_name}`")
 
+
 @register(outgoing=True, pattern="^.ctime (.*)")
 async def set_time_country(loc):
     """ For .ctime command, change the default userbot country for date and time commands. """
@@ -130,15 +136,15 @@ async def set_time_country(loc):
 
         await loc.edit(f"``` Default country for date and time set to {COUNTRY} successfully! ```")
 
-HELPER.update({
+CMD_HELP.update({
     "time": ".time <country name/code>\
     \nUsage: Gets the time of a country."
 })
-HELPER.update({
+CMD_HELP.update({
     "date": ".date <country name/code>\
     \nUsage: Gets the date of a country."
 })
-HELPER.update({
+CMD_HELP.update({
     "ctime": ".ctime <country name/code>\
     \nUsage: Sets a default country for your userbot so you can do .time/.date."
 })

@@ -6,25 +6,28 @@
 
 """ Userbot module containing various scrapers. """
 
-import html
 import os
-import re
-import urllib
+from html import unescape
+from re import findall
+from urllib import parse
+from urllib.error import HTTPError
 from asyncio import create_subprocess_shell as asyncsh
 from asyncio.subprocess import PIPE as asyncsh_PIPE
 
-import requests
-import urbandict
-import wikipedia
+from wikipedia import summary
+from wikipedia.exceptions import DisambiguationError, PageError
+from urbandict import define
+from requests import get
 from google_images_download import google_images_download
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googletrans import LANGUAGES, Translator
 from gtts import gTTS
+from emoji import get_emoji_regexp
 from pytube import YouTube
 from pytube.helpers import safe_filename
 
-from userbot import HELPER, LOGGER, LOGGER_GROUP, YOUTUBE_API_KEY, bot
+from userbot import CMD_HELP, BOTLOG, BOTLOG_CHATID, YOUTUBE_API_KEY, bot
 from userbot.events import register
 
 LANG = "en"
@@ -36,7 +39,7 @@ async def img_sampler(event):
     if not event.text[0].isalpha() and event.text[0] not in ("/", "#", "@", "!"):
         await event.edit("Processing...")
         query = event.pattern_match.group(1)
-        lim = re.findall(r"lim=\d+", query)
+        lim = findall(r"lim=\d+", query)
         try:
             lim = lim[0]
             lim = lim.replace("lim=", "")
@@ -55,7 +58,7 @@ async def img_sampler(event):
 
         # passing the arguments to the function
         paths = response.download(arguments)
-        lst = paths[query]
+        lst = paths[0][query]
         await event.client.send_file(await event.client.get_input_entity(event.chat_id), lst)
         os.remove(lst[0])
         os.remove(lst[1])
@@ -68,21 +71,21 @@ async def gsearch(q_event):
     """ For .google command, do a Google search. """
     if not q_event.text[0].isalpha() and q_event.text[0] not in ("/", "#", "@", "!"):
         match_ = q_event.pattern_match.group(1)
-        match = urllib.parse.quote_plus(match_)
+        match = parse.quote_plus(match_)
         result_ = await asyncsh(
             f"gsearch {match}",
             stdout=asyncsh_PIPE,
             stderr=asyncsh_PIPE
-            )
+        )
         stdout, stderr = await result_.communicate()
         result = str(stdout.decode().strip()) \
             + str(stderr.decode().strip())
         await q_event.edit(
             "**Search Query:**\n`" + match_ + "`\n\n**Result:**\n" + result
         )
-        if LOGGER:
+        if BOTLOG:
             await q_event.client.send_message(
-                LOGGER_GROUP,
+                BOTLOG_CHATID,
                 "Google Search query " + match_ + " was executed successfully",
             )
 
@@ -93,14 +96,14 @@ async def wiki(wiki_q):
     if not wiki_q.text[0].isalpha() and wiki_q.text[0] not in ("/", "#", "@", "!"):
         match = wiki_q.pattern_match.group(1)
         try:
-            wikipedia.summary(match)
-        except wikipedia.exceptions.DisambiguationError as error:
+            summary(match)
+        except DisambiguationError as error:
             await wiki_q.edit(f"Disambiguated page found.\n\n{error}")
             return
-        except wikipedia.exceptions.PageError as pageerror:
+        except PageError as pageerror:
             await wiki_q.edit(f"Page not found.\n\n{pageerror}")
             return
-        result = wikipedia.summary(match)
+        result = summary(match)
         if len(result) >= 4096:
             file = open("output.txt", "w+")
             file.write(result)
@@ -117,9 +120,9 @@ async def wiki(wiki_q):
         await wiki_q.edit(
             "**Search:**\n`" + match + "`\n\n**Result:**\n" + result
         )
-        if LOGGER:
+        if BOTLOG:
             await wiki_q.client.send_message(
-                LOGGER_GROUP,
+                BOTLOG_CHATID,
                 f"Wiki query {match} was executed successfully"
             )
 
@@ -131,11 +134,11 @@ async def urban_dict(ud_e):
         await ud_e.edit("Processing...")
         query = ud_e.pattern_match.group(1)
         try:
-            urbandict.define(query)
-        except urllib.error.HTTPError:
+            define(query)
+        except HTTPError:
             await ud_e.edit(f"Sorry, couldn't find any results for: {query}")
             return
-        mean = urbandict.define(query)
+        mean = define(query)
         deflen = sum(len(i) for i in mean[0]["def"])
         exalen = sum(len(i) for i in mean[0]["example"])
         meanlen = deflen + exalen
@@ -144,13 +147,13 @@ async def urban_dict(ud_e):
                 await ud_e.edit("`Output too large, sending as file.`")
                 file = open("output.txt", "w+")
                 file.write(
-                    "Text: "
-                    + query
-                    + "\n\nMeaning: "
-                    + mean[0]["def"]
-                    + "\n\n"
-                    + "Example: \n"
-                    + mean[0]["example"]
+                    "Text: " +
+                    query +
+                    "\n\nMeaning: " +
+                    mean[0]["def"] +
+                    "\n\n" +
+                    "Example: \n" +
+                    mean[0]["example"]
                 )
                 file.close()
                 await ud_e.client.send_file(
@@ -163,18 +166,18 @@ async def urban_dict(ud_e):
                 await ud_e.delete()
                 return
             await ud_e.edit(
-                "Text: **"
-                + query
-                + "**\n\nMeaning: **"
-                + mean[0]["def"]
-                + "**\n\n"
-                + "Example: \n__"
-                + mean[0]["example"]
-                + "__"
+                "Text: **" +
+                query +
+                "**\n\nMeaning: **" +
+                mean[0]["def"] +
+                "**\n\n" +
+                "Example: \n__" +
+                mean[0]["example"] +
+                "__"
             )
-            if LOGGER:
+            if BOTLOG:
                 await ud_e.client.send_message(
-                    LOGGER_GROUP, "ud query " + query + " executed successfully."
+                    BOTLOG_CHATID, "ud query " + query + " executed successfully."
                 )
         else:
             await ud_e.edit("No result found for **" + query + "**")
@@ -219,14 +222,14 @@ async def text_to_speech(query):
         with open("k.mp3", "r"):
             await query.client.send_file(query.chat_id, "k.mp3", voice_note=True)
             os.remove("k.mp3")
-            if LOGGER:
+            if BOTLOG:
                 await query.client.send_message(
-                    LOGGER_GROUP, "tts of " + message + " executed successfully!"
+                    BOTLOG_CHATID, "tts of " + message + " executed successfully!"
                 )
             await query.delete()
 
 
-@register(outgoing=True, pattern=r"^.trt(?: |$)([\s\S]*)") # ^.promote(?: |$)(.*)
+@register(outgoing=True, pattern=r"^.trt(?: |$)([\s\S]*)")
 async def translateme(trans):
     """ For .trt command, translate the given text using Google Translate. """
     if not trans.text[0].isalpha() and trans.text[0] not in ("/", "#", "@", "!"):
@@ -247,16 +250,16 @@ async def translateme(trans):
             await trans.edit("Invalid destination language.")
             return
 
-        source_lan = LANGUAGES[f'{reply_text.src}']
-        transl_lan = LANGUAGES[f'{reply_text.dest}']
+        source_lan = LANGUAGES[f'{reply_text.src.lower()}']
+        transl_lan = LANGUAGES[f'{reply_text.dest.lower()}']
         reply_text = f"**Source ({source_lan.title()}):**`\n{message}`**\n\
 \nTranslation ({transl_lan.title()}):**`\n{reply_text.text}`"
 
         await trans.client.send_message(trans.chat_id, reply_text)
         await trans.delete()
-        if LOGGER:
+        if BOTLOG:
             await trans.client.send_message(
-                LOGGER_GROUP,
+                BOTLOG_CHATID,
                 f"Translate query {message} was executed successfully",
             )
 
@@ -267,9 +270,9 @@ async def lang(value):
     if not value.text[0].isalpha() and value.text[0] not in ("/", "#", "@", "!"):
         global LANG
         LANG = value.pattern_match.group(1)
-        if LOGGER:
+        if BOTLOG:
             await value.client.send_message(
-                LOGGER_GROUP, "Default language changed to **" + LANG + "**"
+                BOTLOG_CHATID, "Default language changed to **" + LANG + "**"
             )
             await value.edit("Default language changed to **" + LANG + "**")
 
@@ -286,7 +289,7 @@ async def yt_search(video_q):
 
         await video_q.edit("```Processing...```")
         for video in videos_json:
-            result += f"{i}. {html.unescape(video['snippet']['title'])} \
+            result += f"{i}. {unescape(video['snippet']['title'])} \
                 \nhttps://www.youtube.com/watch?v={video['id']['videoId']}\n"
             i += 1
 
@@ -302,8 +305,10 @@ def youtube_search(
         location=None,
         location_radius=None
     ):
+
     """ Do a YouTube search. """
-    youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY, cache_discovery=False)
+    youtube = build('youtube', 'v3',
+                    developerKey=YOUTUBE_API_KEY, cache_discovery=False)
     search_response = youtube.search().list(
         q=query,
         type="video",
@@ -388,7 +393,7 @@ async def download_video(v_url):
         video_stream.download(filename=video.title)
 
         url = video.thumbnail_url
-        resp = requests.get(url)
+        resp = get(url)
         with open('thumbnail.jpg', 'wb') as file:
             file.write(resp.content)
 
@@ -404,44 +409,46 @@ async def download_video(v_url):
         os.remove('thumbnail.jpg')
         await v_url.delete()
 
+
 def deEmojify(inputString):
     """ Remove emojis and other non-safe characters from string """
-    return inputString.encode('ascii', 'ignore').decode('ascii')
+    return get_emoji_regexp().sub(u'', inputString)
 
-HELPER.update({
+
+CMD_HELP.update({
     'img': ".img <search_query>\
     \nUsage: Does an image search on Google and shows two images."
 })
-HELPER.update({
+CMD_HELP.update({
     'google': ".google <search_query>\
     \nUsage: Does a search on Google."
 })
-HELPER.update({
+CMD_HELP.update({
     'wiki': ".wiki <search_query>\
     \nUsage: Does a Wikipedia search."
 })
-HELPER.update({
+CMD_HELP.update({
     'ud': ".ud <search_query>\
     \nUsage: Does a search on Urban Dictionary."
 })
-HELPER.update({
+CMD_HELP.update({
     'tts': ".tts <text> or reply to someones text with .trt\
     \nUsage: Translates text to speech for the default language which is set."
 })
-HELPER.update({
+CMD_HELP.update({
     'trt': ".trt <text> or reply to someones text with .trt\
     \nUsage: Translates text to the default language which is set."
 })
-HELPER.update({
+CMD_HELP.update({
     'lang': ".lang <lang>\
     \nUsage: Changes the default language of userbot scrapers used for Google TRT, \
     TTS may not work."
 })
-HELPER.update({
+CMD_HELP.update({
     'yt': ".yt <search_query>\
     \nUsage: Does a YouTube search. "
 })
-HELPER.update({
+CMD_HELP.update({
     'yt_dl': ".yt_dl <url> <quality>(optional)\
     \nUsage: Download videos from YouTube. \
 If no quality is specified, the highest downloadable quality is downloaded. \

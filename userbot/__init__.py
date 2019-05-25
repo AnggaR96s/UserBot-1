@@ -17,7 +17,7 @@ from telethon import TelegramClient
 
 load_dotenv("config.env")
 
-# Logger setup:
+# Bot Logs setup:
 CONSOLE_LOGGER_VERBOSE = sb(os.environ.get("CONSOLE_LOGGER_VERBOSE", "False"))
 
 
@@ -51,11 +51,13 @@ API_KEY = os.environ.get("API_KEY", None)
 
 API_HASH = os.environ.get("API_HASH", None)
 
-LOGGER_GROUP = int(os.environ.get("LOGGER_GROUP", "0"))
+# STRING_SESSION = os.environ.get("STRING_SESSION", None)
 
-LOGGER = sb(os.environ.get(
-    "LOGGER", "False"
-))  # Incase you want to turn off logging, put this to false
+BOTLOG_CHATID = int(os.environ.get("BOTLOG_CHATID", "0"))
+
+BOTLOG = sb(os.environ.get(
+    "BOTLOG", "False"
+))
 
 PM_AUTO_BAN = sb(os.environ.get("PM_AUTO_BAN", "False"))
 
@@ -71,7 +73,9 @@ SCREENSHOT_LAYER_ACCESS_KEY = os.environ.get(
 
 OPEN_WEATHER_MAP_APPID = os.environ.get("OPEN_WEATHER_MAP_APPID", None)
 
-SUDO = os.environ.get("SUDO", None)
+WELCOME_MUTE = sb(os.environ.get(
+    "WELCOME_MUTE", "False"
+))
 
 YOUTUBE_API_KEY = os.environ.get(
     "YOUTUBE_API_KEY", None
@@ -90,17 +94,15 @@ else:
     LOGS.info("Braincheck file does not exist, fetching...")
 
 URL = 'https://raw.githubusercontent.com/RaphielGang/databasescape/master/learning-data-root.check'
-GET = get(URL)
 
 with open('learning-data-root.check', 'wb') as load:
-    load.write(GET.content)
+    load.write(get(URL).content)
 
 # Global Variables
 SNIPE_TEXT = ""
 COUNT_MSG = 0
 BRAIN_CHECKER = []
 USERS = {}
-SPAM = False
 WIDE_MAP = dict((i, i + 0xFEE0) for i in range(0x21, 0x7F))
 WIDE_MAP[0x20] = 0x3000
 COUNT_PM = {}
@@ -110,9 +112,6 @@ ENABLE_KILLME = True
 SNIPE_ID = 0
 MUTING_USERS = {}
 MUTED_USERS = {}
-HELPER = {}
+CMD_HELP = {}
 AFKREASON = "no reason"
-SPAM_ALLOWANCE = 3
-SPAM_CHAT_ID = []
 DISABLE_RUN = False
-NOTIF_OFF = False

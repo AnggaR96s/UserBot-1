@@ -17,10 +17,10 @@ from zalgo_text import zalgo
 
 from cowpy import cow
 
-from userbot import (DISABLE_RUN, WIDE_MAP, HELPER)
+from userbot import (DISABLE_RUN, WIDE_MAP, CMD_HELP)
 from userbot.events import register
 
-#================= CONSTANT =================
+# ================= CONSTANT =================
 METOOSTR = [
     "Me too thanks",
     "Haha yes, me too",
@@ -192,21 +192,25 @@ RUNSREACTS = [
     "I am just walking off, coz me is too fat.",
     "I Fugged off!",
 ]
-#===========================================
+# ===========================================
 
-@register(outgoing=True, pattern="^.(.*)say (.*)")
+
+@register(outgoing=True, pattern=r"^.(\w+)say (.*)")
 async def univsaye(cowmsg):
     """ For .cowsay module, userbot wrapper for cow which says things. """
     if not cowmsg.text[0].isalpha() and cowmsg.text[0] not in ("/", "#", "@", "!"):
-        arg = cowmsg.pattern_match.group(1)
+        arg = cowmsg.pattern_match.group(1).lower()
         text = cowmsg.pattern_match.group(2)
 
+        if arg == "cow":
+            arg = "default"
+        if arg not in cow.COWACTERS:
+            return
         cheese = cow.get_cow(arg)
-        if isinstance(cheese, str):
-            cheese = cow.get_cow('default')
         cheese = cheese()
 
         await cowmsg.edit(f"`{cheese.milk(text).replace('`', '´')}`")
+
 
 @register(outgoing=True, pattern="^:/$")
 async def kek(keks):
@@ -482,6 +486,6 @@ async def typewriter(typew):
             await typew.edit(old_text)
             await asyncio.sleep(sleep_time)
 
-HELPER.update({
+CMD_HELP.update({
     "memes": "Ask Thoncc (@Skittles9823Bot) for that."
 })

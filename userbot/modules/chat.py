@@ -8,7 +8,7 @@ from time import sleep
 
 from telethon.tl.functions.channels import LeaveChannelRequest
 
-from userbot import HELPER, LOGGER, LOGGER_GROUP, bot
+from userbot import CMD_HELP, BOTLOG, BOTLOG_CHATID, bot
 from userbot.events import register
 
 
@@ -46,13 +46,13 @@ async def chatidgetter(chat):
 
 @register(outgoing=True, pattern="^.log")
 async def log(log_text):
-    """ For .log command, forwards a message or the command argument to the logger group """
+    """ For .log command, forwards a message or the command argument to the bot logs group """
     if not log_text.text[0].isalpha() and log_text.text[0] not in ("/", "#", "@", "!"):
         textx = await log_text.get_reply_message()
         message = textx
         message = str(message.message)
-        if LOGGER:
-            await (await log_text.get_reply_message()).forward_to(LOGGER_GROUP)
+        if BOTLOG:
+            await (await log_text.get_reply_message()).forward_to(BOTLOG_CHATID)
             await log_text.edit("`Logged Successfully`")
         else:
             await log_text.edit("`This feature requires Logging to be enabled!`")
@@ -68,17 +68,17 @@ async def kickme(leave):
         await bot(LeaveChannelRequest(leave.chat_id))
 
 
-HELPER.update({
-    "chatid" : "Fetches the current chat's ID"
+CMD_HELP.update({
+    "chatid": "Fetches the current chat's ID"
 })
-HELPER.update({
-    "userid" : "Fetches the ID of the user in reply, if its a \
+CMD_HELP.update({
+    "userid": "Fetches the ID of the user in reply, if its a \
 forwarded message, finds the ID for the source."
 })
-HELPER.update({
-    "log" : "Forwards the message you've replied to in your \
-logger group."
+CMD_HELP.update({
+    "log": "Forwards the message you've replied to in your \
+bot logs group."
 })
-HELPER.update({
-    "kickme" : "Leave from a targeted group."
+CMD_HELP.update({
+    "kickme": "Leave from a targeted group."
 })

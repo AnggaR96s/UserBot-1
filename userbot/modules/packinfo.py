@@ -9,7 +9,7 @@ import aiohttp
 import bs4
 from userbot.events import register
 from telethon import events
-from userbot import bot, HELPER
+from userbot import bot, CMD_HELP
 from telethon.tl.functions.messages import GetStickerSetRequest
 from telethon.tl.types import (DocumentAttributeFilename,
                                InputMediaUploadedDocument,
@@ -44,6 +44,6 @@ async def get_pack_info(event):
              f"**Emojis In Pack:** {' '.join(pack_emojis)}"
     await event.edit(OUTPUT)
 
-HELPER.update(
+CMD_HELP.update(
     {"packinfo": "send sticker packinfo"}
 )

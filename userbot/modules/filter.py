@@ -5,19 +5,14 @@
 #
 """ Userbot module for filter commands """
 
-import asyncio
-import re
-import sqlite3
-import time
+from asyncio import sleep
+from re import fullmatch, IGNORECASE
 
-from sqlalchemy import (Boolean, Column, Integer, String, UnicodeText,
-                        distinct, func)
-
-from userbot import LOGGER, LOGGER_GROUP, HELPER
+from userbot import BOTLOG, BOTLOG_CHATID, CMD_HELP
 from userbot.events import register
 
 
-@register(incoming=True)
+@register(incoming=True, disable_edited=True)
 async def filter_incoming_handler(handler):
     """ Checks if the incoming message contains handler of a filter """
     try:
@@ -31,7 +26,7 @@ async def filter_incoming_handler(handler):
             filters = get_filters(handler.chat_id)
             for trigger in filters:
                 for item in listes:
-                    pro = re.fullmatch(trigger.keyword, item, flags=re.IGNORECASE)
+                    pro = fullmatch(trigger.keyword, item, flags=IGNORECASE)
                     if pro:
                         await handler.reply(trigger.reply)
                         return
@@ -78,18 +73,18 @@ async def kick_marie_filter(kick):
         Marie(or her clones) filters from a chat. """
     if not kick.text[0].isalpha() and kick.text[0] not in ("/", "#", "@", "!"):
         await kick.edit("```Will be kicking away all Marie filters.```")
-        time.sleep(3)
+        sleep(3)
         resp = await kick.get_reply_message()
         filters = resp.text.split("-")[1:]
         for i in filters:
             await kick.reply("/stop %s" % (i.strip()))
-            await asyncio.sleep(0.3)
+            await sleep(0.3)
         await kick.respond(
             "```Successfully purged Marie filters yaay!```\n Gimme cookies!"
         )
-        if LOGGER:
+        if BOTLOG:
             await kick.client.send_message(
-                LOGGER_GROUP, "I cleaned all Marie filters at " +
+                BOTLOG_CHATID, "I cleaned all Marie filters at " +
                 str(kick.chat_id)
             )
 
@@ -110,7 +105,7 @@ async def filters_active(event):
             transact = message + "🔹 " + i.keyword + "\n"
         await event.edit(transact)
 
-HELPER.update({
+CMD_HELP.update({
     "filters": "\
 .filters\
 \nUsage: List all active filters in this chat.\

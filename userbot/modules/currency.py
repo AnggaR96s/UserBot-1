@@ -6,7 +6,7 @@ import asyncio
 from datetime import datetime
 import requests
 from userbot.events import register
-from userbot import HELPER
+from userbot import CMD_HELP
 
 #Using this module:-
 #To use , type - .currency {ammount} {currency u typed} {currency u wanted }
@@ -38,6 +38,6 @@ async def _(event):
     end = datetime.now()
     ms = (end - start).seconds
 
-HELPER.update(
+CMD_HELP.update(
     {'currency': 'syntax : .currency {ammount} {currency_from} {currency_to} \n Just a converter'}
 )
