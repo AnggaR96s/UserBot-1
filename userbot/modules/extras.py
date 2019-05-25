@@ -343,9 +343,9 @@ async def carbon_api(e):
          reply_to=e.message.reply_to_msg_id,
            )
 
-   os.remove('/home/carbon.png')
+   # os.remove('/home/carbon.png')
    # Removing carbon.png after uploading
-   await e.delete() # Deleting msg
+   # await e.delete() # Deleting msg
 
 CMD_HELP.update({
       "carbon":".carbon <text> \n Beautify your code"
