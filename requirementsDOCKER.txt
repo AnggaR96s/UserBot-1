@@ -1,4 +1,4 @@
-Pillow>=5.3.0
+#Pillow>=5.3.0
 aiohttp
 cowpy
 emoji
@@ -31,4 +31,4 @@ lmgtfy-cli
 lmgtfy
 emoji
 lxml
-lmdb
+#lmdb

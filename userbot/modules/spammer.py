@@ -7,7 +7,7 @@
 import asyncio
 from asyncio import wait
 
-from userbot import LOGGER_GROUP, LOGGER, HELPER
+from userbot import BOTLOG_CHATID, BOTLOG, CMD_HELP
 from userbot.events import register
 
 @register(outgoing=True, pattern="^.tspam")

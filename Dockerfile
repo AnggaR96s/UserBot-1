@@ -54,7 +54,9 @@ RUN adduser userbot --disabled-password --home /home/userbot
 RUN adduser userbot wheel
 USER userbot
 RUN mkdir /home/userbot/userbot
-RUN git clone -b master https://github.com/AnggaR96s/UserBot /home/userbot/userbot
+RUN mkdir /home/userbot/downloads
+RUN mkdir /home/userbot/temp
+RUN git clone -b stg https://github.com/AnggaR96s/UserBot /home/userbot/userbot
 WORKDIR /home/userbot/userbot
 #
 #Copies session and config(if it exists)

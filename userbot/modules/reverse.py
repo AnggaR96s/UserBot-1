@@ -16,7 +16,7 @@ import re
 from telethon.tl.types import MessageMediaPhoto
 from PIL import Image
 
-from userbot import bot, HELPER
+from userbot import bot, CMD_HELP
 from userbot.events import register
 
 
