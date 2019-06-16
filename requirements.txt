@@ -25,7 +25,7 @@ telegraph
 telethon-session-sqlalchemy>=0.2.6
 pytube
 lmgtfy
-telethon>=1.6.2
+telethon>=1.8.0
 urbandict>=0.5
 wikipedia>=1.4.0
 zalgo_text>=0.6
