@@ -31,74 +31,78 @@ def progress(current, total):
 @register(pattern=r"^.getqr$", outgoing=True)
 async def parseqr(qr_e):
     """ For .getqr command, get QR Code content from the replied photo. """
-    if not qr_e.text[0].isalpha() and qr_e.text[0] not in ("/", "#", "@", "!"):
-        if qr_e.fwd_from:
-            return
-        start = datetime.now()
-        downloaded_file_name = await qr_e.client.download_media(
-            await qr_e.get_reply_message(), DL_DIRECTORY, progress_callback=progress
-        )
-        url = "https://api.qrserver.com/v1/read-qr-code/?outputformat=json"
-        files = {"file": open(downloaded_file_name, "rb")}
-        resp = post(url, files=files).json()
-        qr_contents = resp[0]["symbol"][0]["data"]
-        os.remove(downloaded_file_name)
-        end = datetime.now()
-        duration = (end - start).seconds
-        await qr_e.edit(
-            "Obtained QRCode contents in {} seconds.\n{}".format(duration, qr_contents)
-        )
+    if qr_e.text[0].isalpha() or qr_e.text[0] in ("/", "#", "@", "!"):
+        return
+
+    if qr_e.fwd_from:
+        return
+    start = datetime.now()
+    downloaded_file_name = await qr_e.client.download_media(
+        await qr_e.get_reply_message(), DL_DIRECTORY, progress_callback=progress
+    )
+    url = "https://api.qrserver.com/v1/read-qr-code/?outputformat=json"
+    files = {"file": open(downloaded_file_name, "rb")}
+    resp = post(url, files=files).json()
+    qr_contents = resp[0]["symbol"][0]["data"]
+    os.remove(downloaded_file_name)
+    end = datetime.now()
+    duration = (end - start).seconds
+    await qr_e.edit(
+        "Obtained QRCode contents in {} seconds.\n{}".format(duration, qr_contents)
+    )
 
 
 @register(pattern=r".makeqr(?: |$)(.*)", outgoing=True)
 async def make_qr(qrcode):
     """ For .makeqr command, make a QR Code containing the given content. """
-    if not qrcode.text[0].isalpha() and qrcode.text[0] not in ("/", "#", "@", "!"):
-        if qrcode.fwd_from:
-            return
-        start = datetime.now()
-        input_str = qrcode.pattern_match.group(1)
-        message = "SYNTAX: `.makeqr <long text to include>`"
-        reply_msg_id = qrcode.message.id
-        if input_str:
-            message = input_str
-        elif qrcode.reply_to_msg_id:
-            previous_message = await qrcode.get_reply_message()
-            reply_msg_id = previous_message.id
-            if previous_message.media:
-                downloaded_file_name = await qrcode.client.download_media(
-                    previous_message, DL_DIRECTORY, progress_callback=progress
-                )
-                m_list = None
-                with open(downloaded_file_name, "rb") as file:
-                    m_list = file.readlines()
-                message = ""
-                for media in m_list:
-                    message += media.decode("UTF-8") + "\r\n"
-                os.remove(downloaded_file_name)
-            else:
-                message = previous_message.message
+    if qrcode.text[0].isalpha() or qrcode.text[0] in ("/", "#", "@", "!"):
+        return
+
+    if qrcode.fwd_from:
+        return
+    start = datetime.now()
+    input_str = qrcode.pattern_match.group(1)
+    message = "SYNTAX: `.makeqr <long text to include>`"
+    reply_msg_id = qrcode.message.id
+    if input_str:
+        message = input_str
+    elif qrcode.reply_to_msg_id:
+        previous_message = await qrcode.get_reply_message()
+        reply_msg_id = previous_message.id
+        if previous_message.media:
+            downloaded_file_name = await qrcode.client.download_media(
+                previous_message, DL_DIRECTORY, progress_callback=progress
+            )
+            m_list = None
+            with open(downloaded_file_name, "rb") as file:
+                m_list = file.readlines()
+            message = ""
+            for media in m_list:
+                message += media.decode("UTF-8") + "\r\n"
+            os.remove(downloaded_file_name)
         else:
-            message = "SYNTAX: `.makeqr <long text to include>`"
-        url = "https://api.qrserver.com/v1/create-qr-code/?data={}&size=200x200&\
+            message = previous_message.message
+    else:
+        message = "SYNTAX: `.makeqr <long text to include>`"
+    url = "https://api.qrserver.com/v1/create-qr-code/?data={}&size=200x200&\
                 charset-source=UTF-8&charset-target=UTF-8&ecc=L&color=0-0-0\
                 &bgcolor=255-255-255&margin=1&qzone=0&format=jpg"
-        resp = get(url.format(message), stream=True)
-        required_file_name = DL_DIRECTORY + " " + str(datetime.now()) + ".webp"
-        with open(required_file_name, "wb") as file:
-            for chunk in resp.iter_content(chunk_size=128):
-                file.write(chunk)
-        await qrcode.client.send_file(
-            qrcode.chat_id,
-            required_file_name,
-            reply_to=reply_msg_id,
-            progress_callback=progress,
-        )
-        os.remove(required_file_name)
-        duration = (datetime.now() - start).seconds
-        await qrcode.edit("Created QRCode in {} seconds".format(duration))
-        await sleep(5)
-        await qrcode.delete()
+    resp = get(url.format(message), stream=True)
+    required_file_name = DL_DIRECTORY + " " + str(datetime.now()) + ".webp"
+    with open(required_file_name, "wb") as file:
+        for chunk in resp.iter_content(chunk_size=128):
+            file.write(chunk)
+    await qrcode.client.send_file(
+        qrcode.chat_id,
+        required_file_name,
+        reply_to=reply_msg_id,
+        progress_callback=progress,
+    )
+    os.remove(required_file_name)
+    duration = (datetime.now() - start).seconds
+    await qrcode.edit("Created QRCode in {} seconds".format(duration))
+    await sleep(5)
+    await qrcode.delete()
 
 CMD_HELP.update({
     'getqr': ".getqr\

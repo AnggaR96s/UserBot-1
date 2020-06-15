@@ -25,19 +25,20 @@ async def unmute_chat(unm_e):
 @register(outgoing=True, pattern="^.mutechat$")
 async def mute_chat(mute_e):
     """ For .mutechat command, mute any chat. """
-    if not mute_e.text[0].isalpha() and mute_e.text[0] not in ("/", "#", "@", "!"):
-        try:
-            from userbot.modules.sql_helper.keep_read_sql import kread
-        except AttributeError:
-            await mute_e.edit("`Running on Non-SQL mode!`")
-            return
-        await mute_e.edit(str(mute_e.chat_id))
-        kread(str(mute_e.chat_id))
-        await mute_e.edit("`Shush! This chat will be silenced!`")
-        if BOTLOG:
-            await mute_e.client.send_message(
-                BOTLOG_CHATID,
-                str(mute_e.chat_id) + " was silenced.")
+    if mute_e.text[0].isalpha() or mute_e.text[0] in ("/", "#", "@", "!"):
+        return
+    try:
+        from userbot.modules.sql_helper.keep_read_sql import kread
+    except AttributeError:
+        await mute_e.edit("`Running on Non-SQL mode!`")
+        return
+    await mute_e.edit(str(mute_e.chat_id))
+    kread(str(mute_e.chat_id))
+    await mute_e.edit("`Shush! This chat will be silenced!`")
+    if BOTLOG:
+        await mute_e.client.send_message(
+            BOTLOG_CHATID,
+            str(mute_e.chat_id) + " was silenced.")
 
 
 @register(incoming=True)

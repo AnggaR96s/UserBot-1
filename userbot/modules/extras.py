@@ -26,80 +26,78 @@ from selenium.webdriver.chrome.options import Options
 @register(outgoing=True, pattern="^.imdb (.*)")
 async def imdb(e):
  try:
-    movie_name = e.pattern_match.group(1)
-    remove_space = movie_name.split(' ')
-    final_name = '+'.join(remove_space)
-    page = requests.get("https://www.imdb.com/find?ref_=nv_sr_fn&q="+final_name+"&s=all")
-    lnk = str(page.status_code)
-    soup = bs4.BeautifulSoup(page.content,'lxml')
-    odds = soup.findAll("tr","odd")
-    mov_title = odds[0].findNext('td').findNext('td').text
-    mov_link = "http://www.imdb.com/"+odds[0].findNext('td').findNext('td').a['href']
-    page1 = requests.get(mov_link)
-    soup = bs4.BeautifulSoup(page1.content,'lxml')
-    if soup.find('div','poster'):
-    	poster = soup.find('div','poster').img['src']
-    else:
-    	poster = ''
-    if soup.find('div','title_wrapper'):
-    	pg = soup.find('div','title_wrapper').findNext('div').text
-    	mov_details = re.sub(r'\s+',' ',pg)
-    else:
-    	mov_details = ''
-    credits = soup.findAll('div', 'credit_summary_item')
-    if len(credits)==1:
-    	director = credits[0].a.text
-    	writer = 'Not available'
-    	stars = 'Not available'
-    elif len(credits)>2:
-    	director = credits[0].a.text
-    	writer = credits[1].a.text
-    	actors = []
-    	for x in credits[2].findAll('a'):
-    		actors.append(x.text)
-    	actors.pop()
-    	stars = actors[0]+','+actors[1]+','+actors[2]
-    else:
-    	director = credits[0].a.text
-    	writer = 'Not available'
-    	actors = []
-    	for x in credits[1].findAll('a'):
-    		actors.append(x.text)
-    	actors.pop()
-    	stars = actors[0]+','+actors[1]+','+actors[2]
-    if soup.find('div', "inline canwrap"):
-    	story_line = soup.find('div', "inline canwrap").findAll('p')[0].text
-    else:
-    	story_line = 'Not available'
-    info = soup.findAll('div', "txt-block")
-    if info:
-    	mov_country = []
-    	mov_language = []
-    	for node in info:
-    		a = node.findAll('a')
-    		for i in a:
-    			if "country_of_origin" in i['href']:
-    				mov_country.append(i.text)
-    			elif "primary_language" in i['href']:
-    				mov_language.append(i.text)
-    if soup.findAll('div',"ratingValue"):
-    	for r in soup.findAll('div',"ratingValue"):
-    		mov_rating = r.strong['title']
-    else:
-    	mov_rating = 'Not available'
-    await e.edit('<a href='+poster+'>&#8203;</a>'
-    			'<b>Title : </b><code>'+mov_title+
-    			'</code>\n<code>'+mov_details+
-    			'</code>\n<b>Rating : </b><code>'+mov_rating+
-    			'</code>\n<b>Country : </b><code>'+mov_country[0]+
-    			'</code>\n<b>Language : </b><code>'+mov_language[0]+
-    			'</code>\n<b>Director : </b><code>'+director+
-    			'</code>\n<b>Writer : </b><code>'+writer+
-    			'</code>\n<b>Stars : </b><code>'+stars+
-    			'</code>\n<b>IMDB Url : </b>'+mov_link+
-    			'\n<b>Story Line : </b>'+story_line,
-    			link_preview = True , parse_mode = 'HTML'
-    			)
+  movie_name = e.pattern_match.group(1)
+  remove_space = movie_name.split(' ')
+  final_name = '+'.join(remove_space)
+  page = requests.get("https://www.imdb.com/find?ref_=nv_sr_fn&q="+final_name+"&s=all")
+  lnk = str(page.status_code)
+  soup = bs4.BeautifulSoup(page.content,'lxml')
+  odds = soup.findAll("tr","odd")
+  mov_title = odds[0].findNext('td').findNext('td').text
+  mov_link = "http://www.imdb.com/"+odds[0].findNext('td').findNext('td').a['href']
+  page1 = requests.get(mov_link)
+  soup = bs4.BeautifulSoup(page1.content,'lxml')
+  if soup.find('div','poster'):
+  	poster = soup.find('div','poster').img['src']
+  else:
+  	poster = ''
+  if soup.find('div','title_wrapper'):
+  	pg = soup.find('div','title_wrapper').findNext('div').text
+  	mov_details = re.sub(r'\s+',' ',pg)
+  else:
+  	mov_details = ''
+  credits = soup.findAll('div', 'credit_summary_item')
+  director = credits[0].a.text
+  if len(credits)==1:
+   writer = 'Not available'
+   stars = 'Not available'
+  elif len(credits)>2:
+   writer = credits[1].a.text
+   actors = []
+   for x in credits[2].findAll('a'):
+   	actors.append(x.text)
+   actors.pop()
+   stars = actors[0]+','+actors[1]+','+actors[2]
+  else:
+   writer = 'Not available'
+   actors = []
+   for x in credits[1].findAll('a'):
+   	actors.append(x.text)
+   actors.pop()
+   stars = actors[0]+','+actors[1]+','+actors[2]
+  if soup.find('div', "inline canwrap"):
+  	story_line = soup.find('div', "inline canwrap").findAll('p')[0].text
+  else:
+  	story_line = 'Not available'
+  info = soup.findAll('div', "txt-block")
+  if info:
+  	mov_country = []
+  	mov_language = []
+  	for node in info:
+  		a = node.findAll('a')
+  		for i in a:
+  			if "country_of_origin" in i['href']:
+  				mov_country.append(i.text)
+  			elif "primary_language" in i['href']:
+  				mov_language.append(i.text)
+  if soup.findAll('div',"ratingValue"):
+  	for r in soup.findAll('div',"ratingValue"):
+  		mov_rating = r.strong['title']
+  else:
+  	mov_rating = 'Not available'
+  await e.edit('<a href='+poster+'>&#8203;</a>'
+  			'<b>Title : </b><code>'+mov_title+
+  			'</code>\n<code>'+mov_details+
+  			'</code>\n<b>Rating : </b><code>'+mov_rating+
+  			'</code>\n<b>Country : </b><code>'+mov_country[0]+
+  			'</code>\n<b>Language : </b><code>'+mov_language[0]+
+  			'</code>\n<b>Director : </b><code>'+director+
+  			'</code>\n<b>Writer : </b><code>'+writer+
+  			'</code>\n<b>Stars : </b><code>'+stars+
+  			'</code>\n<b>IMDB Url : </b>'+mov_link+
+  			'\n<b>Story Line : </b>'+story_line,
+  			link_preview = True , parse_mode = 'HTML'
+  			)
  except IndexError:
      await e.edit("Plox enter **Valid movie name** kthx")
 
@@ -115,10 +113,10 @@ async def leave(e):
 
 @register(outgoing=True, pattern="^;__;$")
 async def fun(e):
-    t = ";__;"
-    for j in range(10):
-        t = t[:-1] + "_;"
-        await e.edit(t)
+ t = ";__;"
+ for _ in range(10):
+  t = t[:-1] + "_;"
+  await e.edit(t)
 @register(outgoing=True, pattern="^.smk (.*)")
 async def smrk(smk):
         if not smk.text[0].isalpha() and smk.text[0] not in ("/", "#", "@", "!"):
@@ -139,28 +137,29 @@ async def smrk(smk):
 
 @register(outgoing=True, pattern="^.lfy (.*)",)
 async def let_me_google_that_for_you(lmgtfy_q):
-    if not lmgtfy_q.text[0].isalpha() and lmgtfy_q.text[0] not in ("/", "#", "@", "!"):
-        textx = await lmgtfy_q.get_reply_message()
-        query = lmgtfy_q.text
-        if query[5:]:
-            query = str(query[5:])
-        elif textx:
-            query = textx
-            query = query.message
-        reply_text = 'http://lmgtfy.com/?s=g&iie=1&q=' + query.replace(" ", "+")
-        await lmgtfy_q.edit(reply_text)
-        if LOGGER:
-            await bot.send_message(
-                LOGGER_GROUP,
-                "LMGTFY query " + query + " was executed successfully",
-            )
+ if lmgtfy_q.text[0].isalpha() or lmgtfy_q.text[0] in ("/", "#", "@", "!"):
+  return
+ textx = await lmgtfy_q.get_reply_message()
+ query = lmgtfy_q.text
+ if query[5:]:
+     query = str(query[5:])
+ elif textx:
+     query = textx
+     query = query.message
+ reply_text = 'http://lmgtfy.com/?s=g&iie=1&q=' + query.replace(" ", "+")
+ await lmgtfy_q.edit(reply_text)
+ if LOGGER:
+     await bot.send_message(
+         LOGGER_GROUP,
+         "LMGTFY query " + query + " was executed successfully",
+     )
 
 @register(outgoing=True, pattern="^Oof$")
 async def Oof(e):
-    t = "Oof"
-    for j in range(15):
-        t = t[:-1] + "of"
-        await e.edit(t)
+ t = "Oof"
+ for _ in range(15):
+  t = t[:-1] + "of"
+  await e.edit(t)
 
 @register(outgoing=True, pattern="^.cry$")
 async def cry(e):
@@ -194,34 +193,35 @@ async def reedme(e):
 
 @register(outgoing=True, pattern="^.disapprove$")
 async def disapprovepm(disapprvpm):
-    if not disapprvpm.text[0].isalpha() and disapprvpm.text[0] not in ("/", "#", "@", "!"):
-        try:
-            from userbot.modules.sql_helper.pm_permit_sql import dissprove
-        except:
-            await disapprvpm.edit("`Running on Non-SQL mode!`")
-            return
+ if disapprvpm.text[0].isalpha() or disapprvpm.text[0] in ("/", "#", "@", "!"):
+  return
+ try:
+     from userbot.modules.sql_helper.pm_permit_sql import dissprove
+ except:
+     await disapprvpm.edit("`Running on Non-SQL mode!`")
+     return
 
-        if disapprvpm.reply_to_msg_id:
-            reply = await disapprvpm.get_reply_message()
-            replied_user = await bot(GetFullUserRequest(reply.from_id))
-            aname = replied_user.user.id
-            name0 = str(replied_user.user.first_name)
-            dissprove(replied_user.user.id)
-        else:
-            dissprove(disapprvpm.chat_id)
-            aname = await bot.get_entity(disapprvpm.chat_id)
-            name0 = str(aname.first_name)
+ if disapprvpm.reply_to_msg_id:
+  reply = await disapprvpm.get_reply_message()
+  replied_user = await bot(GetFullUserRequest(reply.from_id))
+  aname = replied_user.user.id
+  name0 = str(replied_user.user.first_name)
+  dissprove(aname)
+ else:
+  dissprove(disapprvpm.chat_id)
+  aname = await bot.get_entity(disapprvpm.chat_id)
+  name0 = str(aname.first_name)
 
-        await disapprvpm.edit(
-            f"[{name0}](tg://user?id={disapprvpm.chat_id}) `Disaproved to PM!`"
-            )
+ await disapprvpm.edit(
+     f"[{name0}](tg://user?id={disapprvpm.chat_id}) `Disaproved to PM!`"
+     )
 
-        if LOGGER:
-            await bot.send_message(
-                LOGGER_GROUP,
-                f"[{name0}](tg://user?id={disapprvpm.chat_id})"
-                " was disapproved to PM you.",
-            )
+ if LOGGER:
+     await bot.send_message(
+         LOGGER_GROUP,
+         f"[{name0}](tg://user?id={disapprvpm.chat_id})"
+         " was disapproved to PM you.",
+     )
 
 @register(outgoing=True, pattern="^.clock$")
 async def _(event):
@@ -299,49 +299,51 @@ async def setlang(prog):
 
 @register(outgoing=True, pattern="^.carbon")
 async def carbon_api(e):
-    if not e.text[0].isalpha() and e.text[0] not in ("/", "#", "@", "!"):
-        await e.edit("Processing...")
-        CARBON = 'https://carbon.now.sh/?l={lang}&code={code}'
-        global LANG
-        textx = await e.get_reply_message()
-        pcode = e.text
-        if pcode[8:]:
-            pcode = str(pcode[8:])
-        elif textx:
-            pcode = str(textx.message)  # Importing message to module
-        code = quote_plus(pcode)  # Converting to urlencoded
-        url = CARBON.format(code=code, lang=LANG)
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--window-size=1920x1080")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument('--disable-gpu')
-        prefs = {'download.default_directory': '/'}
-        chrome_options.add_experimental_option('prefs', prefs)
-        await e.edit("Processing 30%")
+ if e.text[0].isalpha() or e.text[0] in ("/", "#", "@", "!"):
+  return
 
-        driver = webdriver.Chrome(options=chrome_options)
-        driver.get(url)
-        download_path = '/home/'
-        driver.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
-        params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': download_path}}
-        command_result = driver.execute("send_command", params)
+ await e.edit("Processing...")
+ CARBON = 'https://carbon.now.sh/?l={lang}&code={code}'
+ global LANG
+ textx = await e.get_reply_message()
+ pcode = e.text
+ if pcode[8:]:
+     pcode = str(pcode[8:])
+ elif textx:
+     pcode = str(textx.message)  # Importing message to module
+ code = quote_plus(pcode)  # Converting to urlencoded
+ url = CARBON.format(code=code, lang=LANG)
+ chrome_options = Options()
+ chrome_options.add_argument("--headless")
+ chrome_options.add_argument("--window-size=1920x1080")
+ chrome_options.add_argument("--disable-dev-shm-usage")
+ chrome_options.add_argument("--no-sandbox")
+ chrome_options.add_argument('--disable-gpu')
+ prefs = {'download.default_directory': '/'}
+ chrome_options.add_experimental_option('prefs', prefs)
+ await e.edit("Processing 30%")
 
-        driver.find_element_by_xpath("//button[contains(text(),'Export')]").click()
-        sleep(3)  # this might take a bit.
-        await e.edit("Processing 50%")
-        driver.find_element_by_xpath("//button[contains(text(),'PNG')]").click()
-        sleep(3)  # Waiting for downloading
+ driver = webdriver.Chrome(options=chrome_options)
+ driver.get(url)
+ download_path = '/home/'
+ driver.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
+ params = {'cmd': 'Page.setDownloadBehavior', 'params': {'behavior': 'allow', 'downloadPath': download_path}}
+ command_result = driver.execute("send_command", params)
 
-        await e.edit("Processing 90%")
-        file = '/home/carbon.png'
-        await e.edit("Done!!")
-        await bot.send_file(
-         e.chat_id,
-         file,
-         reply_to=e.message.reply_to_msg_id,
-           )
+ driver.find_element_by_xpath("//button[contains(text(),'Export')]").click()
+ sleep(3)  # this might take a bit.
+ await e.edit("Processing 50%")
+ driver.find_element_by_xpath("//button[contains(text(),'PNG')]").click()
+ sleep(3)  # Waiting for downloading
+
+ await e.edit("Processing 90%")
+ file = '/home/carbon.png'
+ await e.edit("Done!!")
+ await bot.send_file(
+  e.chat_id,
+  file,
+  reply_to=e.message.reply_to_msg_id,
+    )
 
    # os.remove('/home/carbon.png')
    # Removing carbon.png after uploading

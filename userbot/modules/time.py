@@ -52,32 +52,34 @@ async def time_func(tdata):
         2. The default userbot country(set it by using .ctime),
         3. The server where the userbot runs.
     """
-    if not tdata.text[0].isalpha() and tdata.text[0] not in ("/", "#", "@", "!"):
-        con = tdata.pattern_match.group(1).title()
-        t_form = "%I:%M %p"
+    if tdata.text[0].isalpha() or tdata.text[0] in ("/", "#", "@", "!"):
+        return
 
-        if not con:
-            if not COUNTRY:
-                await tdata.edit(f"`It's`  **{dt.now().strftime(t_form)}**  `here.`")
-                return
+    con = tdata.pattern_match.group(1).title()
+    t_form = "%I:%M %p"
 
-            time_zone = await get_tz(COUNTRY)
-            await tdata.edit(
-                f"`It's`  **{dt.now(time_zone).strftime(t_form)}**  `here, in {COUNTRY}`"
-            )
+    if not con:
+        if not COUNTRY:
+            await tdata.edit(f"`It's`  **{dt.now().strftime(t_form)}**  `here.`")
             return
 
-        time_zone = await get_tz(con)
-        if not time_zone:
-            await tdata.edit("``` Wrong country given! Try again! ```")
-            return
+        time_zone = await get_tz(COUNTRY)
+        await tdata.edit(
+            f"`It's`  **{dt.now(time_zone).strftime(t_form)}**  `here, in {COUNTRY}`"
+        )
+        return
 
-        try:
-            c_name = c_n[con]
-        except KeyError:
-            c_name = con
+    time_zone = await get_tz(con)
+    if not time_zone:
+        await tdata.edit("``` Wrong country given! Try again! ```")
+        return
 
-        await tdata.edit(f"`It's`  **{dt.now(time_zone).strftime(t_form)}**  `in {c_name}`")
+    try:
+        c_name = c_n[con]
+    except KeyError:
+        c_name = con
+
+    await tdata.edit(f"`It's`  **{dt.now(time_zone).strftime(t_form)}**  `in {c_name}`")
 
 
 @register(outgoing=True, pattern="^.date(?: |$)(.*)")
@@ -87,54 +89,58 @@ async def date_func(dat):
         2. The default userbot country(set it by using .ctime),
         3. The server where the userbot runs.
     """
-    if not dat.text[0].isalpha() and dat.text[0] not in ("/", "#", "@", "!"):
-        d_form = "%d/%m/%y - %A"
-        con = dat.pattern_match.group(1).title()
+    if dat.text[0].isalpha() or dat.text[0] in ("/", "#", "@", "!"):
+        return
 
-        if not con:
-            if not COUNTRY:
-                await dat.edit(f"`It's`  **{dt.now().strftime(d_form)}**  `here.`")
-                return
+    d_form = "%d/%m/%y - %A"
+    con = dat.pattern_match.group(1).title()
 
-            time_zone = await get_tz(COUNTRY)
-            await dat.edit(
-                f"`It's`  **{dt.now(time_zone).strftime(d_form)}**  `here, in {COUNTRY}.`"
-            )
+    if not con:
+        if not COUNTRY:
+            await dat.edit(f"`It's`  **{dt.now().strftime(d_form)}**  `here.`")
             return
 
-        time_zone = await get_tz(con)
-        if not time_zone:
-            await dat.edit("``` Wrong country given! Try again! ```")
-            return
+        time_zone = await get_tz(COUNTRY)
+        await dat.edit(
+            f"`It's`  **{dt.now(time_zone).strftime(d_form)}**  `here, in {COUNTRY}.`"
+        )
+        return
 
-        try:
-            c_name = c_n[con]
-        except KeyError:
-            c_name = con
+    time_zone = await get_tz(con)
+    if not time_zone:
+        await dat.edit("``` Wrong country given! Try again! ```")
+        return
 
-        await dat.edit(f"`It's`  **{dt.now().strftime(d_form)}**  `in {c_name}`")
+    try:
+        c_name = c_n[con]
+    except KeyError:
+        c_name = con
+
+    await dat.edit(f"`It's`  **{dt.now().strftime(d_form)}**  `in {c_name}`")
 
 
 @register(outgoing=True, pattern="^.ctime (.*)")
 async def set_time_country(loc):
     """ For .ctime command, change the default userbot country for date and time commands. """
-    if not loc.text[0].isalpha() and loc.text[0] not in ("/", "#", "@", "!"):
-        global COUNTRY
-        temp_country = loc.pattern_match.group(1).title()
+    if loc.text[0].isalpha() or loc.text[0] in ("/", "#", "@", "!"):
+        return
 
-        time_zone = await get_tz(temp_country)
-        if not time_zone:
-            await loc.edit("``` Wrong country given! Try again! ```")
-            return
+    global COUNTRY
+    temp_country = loc.pattern_match.group(1).title()
 
-        try:
-            c_name = c_n[temp_country]
-        except KeyError:
-            c_name = temp_country
+    time_zone = await get_tz(temp_country)
+    if not time_zone:
+        await loc.edit("``` Wrong country given! Try again! ```")
+        return
 
-        COUNTRY = c_name
+    try:
+        c_name = c_n[temp_country]
+    except KeyError:
+        c_name = temp_country
 
-        await loc.edit(f"``` Default country for date and time set to {COUNTRY} successfully! ```")
+    COUNTRY = c_name
+
+    await loc.edit(f"``` Default country for date and time set to {COUNTRY} successfully! ```")
 
 CMD_HELP.update({
     "time": ".time <country name/code>\

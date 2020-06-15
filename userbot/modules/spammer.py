@@ -39,7 +39,7 @@ async def bigspam(e):
         message = e.text
         counter = int(message[9:13])
         spam_message = str(e.text[13:])
-        for i in range(1, counter):
+        for _ in range(1, counter):
             await e.respond(spam_message)
         await e.delete()
         if LOGGER:
@@ -52,17 +52,18 @@ async def bigspam(e):
         
 @register(outgoing=True, pattern="^.picspam")
 async def tiny_pic_spam(e):
-    if not e.text[0].isalpha() and e.text[0] not in ("/", "#", "@", "!"):
-        message = e.text
-        text = message.split()
-        counter = int(text[1])
-        link = str(text[2])
-        for i in range(1, counter):
-            await e.client.send_file(e.chat_id, link)
-        await e.delete()
-        if LOGGER:
-            await e.client.send_message(
-                LOGGER_GROUP,
-                "#PICSPAM \n\n"
-                "PicSpam was executed successfully"
-                )
+    if e.text[0].isalpha() or e.text[0] in ("/", "#", "@", "!"):
+        return
+    message = e.text
+    text = message.split()
+    counter = int(text[1])
+    link = str(text[2])
+    for _ in range(1, counter):
+        await e.client.send_file(e.chat_id, link)
+    await e.delete()
+    if LOGGER:
+        await e.client.send_message(
+            LOGGER_GROUP,
+            "#PICSPAM \n\n"
+            "PicSpam was executed successfully"
+            )

@@ -20,27 +20,26 @@ async def mention_afk(mention):
     global COUNT_MSG
     global USERS
     global ISAFK
-    if mention.message.mentioned and not (await mention.get_sender()).bot:
-        if ISAFK:
-            if mention.sender_id not in USERS:
+    if (
+        mention.message.mentioned
+        and not (await mention.get_sender()).bot
+        and ISAFK
+    ):
+        if mention.sender_id not in USERS:
+            await mention.reply(
+                f"Sorry! My boss is AFK due to `{AFKREASON}`."
+                "\nWould ping him to look into the message soon 😉."
+            )
+            USERS.update({mention.sender_id: 1})
+        else:
+            if USERS[mention.sender_id] % 5 == 0:
                 await mention.reply(
-                    f"Sorry! My boss is AFK due to `{AFKREASON}`."
-                    "\nWould ping him to look into the message soon 😉."
+                    "Sorry! But my boss is still not here."
+                    "\nTry to ping him a little later. I am sorry 😖."
+                    f"\nHe told me he was busy with `{AFKREASON}`."
                 )
-                USERS.update({mention.sender_id: 1})
-                COUNT_MSG = COUNT_MSG + 1
-            elif mention.sender_id in USERS:
-                if USERS[mention.sender_id] % 5 == 0:
-                    await mention.reply(
-                        "Sorry! But my boss is still not here."
-                        "\nTry to ping him a little later. I am sorry 😖."
-                        f"\nHe told me he was busy with `{AFKREASON}`."
-                    )
-                    USERS[mention.sender_id] = USERS[mention.sender_id] + 1
-                    COUNT_MSG = COUNT_MSG + 1
-                else:
-                    USERS[mention.sender_id] = USERS[mention.sender_id] + 1
-                    COUNT_MSG = COUNT_MSG + 1
+            USERS[mention.sender_id] = USERS[mention.sender_id] + 1
+        COUNT_MSG = COUNT_MSG + 1
 
 
 @register(incoming=True, disable_edited=True)
@@ -49,44 +48,41 @@ async def afk_on_pm(sender):
     global ISAFK
     global USERS
     global COUNT_MSG
-    if sender.is_private and not (await sender.get_sender()).bot:
-        if ISAFK:
-            if sender.sender_id not in USERS:
+    if sender.is_private and not (await sender.get_sender()).bot and ISAFK:
+        if sender.sender_id not in USERS:
+            await sender.reply(
+                f"Sorry! My boss is AFK due to `{AFKREASON}`."
+                "\nI'll ping him to look into the message soon 😉."
+            )
+            USERS.update({sender.sender_id: 1})
+        else:
+            if USERS[sender.sender_id] % 5 == 0:
                 await sender.reply(
-                    f"Sorry! My boss is AFK due to `{AFKREASON}`."
-                    "\nI'll ping him to look into the message soon 😉."
+                    "Sorry! But my boss is still not here."
+                    "\nTry to ping him a little later. I am sorry 😖."
+                    f"\nHe told me he was busy with `{AFKREASON}`."
                 )
-                USERS.update({sender.sender_id: 1})
-                COUNT_MSG = COUNT_MSG + 1
-            elif sender.sender_id in USERS:
-                if USERS[sender.sender_id] % 5 == 0:
-                    await sender.reply(
-                        "Sorry! But my boss is still not here."
-                        "\nTry to ping him a little later. I am sorry 😖."
-                        f"\nHe told me he was busy with `{AFKREASON}`."
-                    )
-                    USERS[sender.sender_id] = USERS[sender.sender_id] + 1
-                    COUNT_MSG = COUNT_MSG + 1
-                else:
-                    USERS[sender.sender_id] = USERS[sender.sender_id] + 1
-                    COUNT_MSG = COUNT_MSG + 1
+            USERS[sender.sender_id] = USERS[sender.sender_id] + 1
+        COUNT_MSG = COUNT_MSG + 1
 
 
 @register(outgoing=True, pattern="^.afk")
 async def set_afk(afk_e):
     """ For .afk command, allows you to inform people that you are afk when they message you """
-    if not afk_e.text[0].isalpha() and afk_e.text[0] not in ("/", "#", "@", "!"):
-        message = afk_e.text
-        string = str(message[5:])
-        global ISAFK
-        global AFKREASON
-        await afk_e.edit("AFK AF!")
-        if string != "":
-            AFKREASON = string
-        if BOTLOG:
-            await afk_e.client.send_message(BOTLOG_CHATID, "You went AFK!")
-        ISAFK = True
-        raise StopPropagation
+    if afk_e.text[0].isalpha() or afk_e.text[0] in ("/", "#", "@", "!"):
+        return
+
+    message = afk_e.text
+    string = str(message[5:])
+    global ISAFK
+    global AFKREASON
+    await afk_e.edit("AFK AF!")
+    if string != "":
+        AFKREASON = string
+    if BOTLOG:
+        await afk_e.client.send_message(BOTLOG_CHATID, "You went AFK!")
+    ISAFK = True
+    raise StopPropagation
 
 
 @register(outgoing=True)

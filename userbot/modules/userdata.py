@@ -37,49 +37,52 @@ USERNAME_TAKEN = "```This username is already taken.```"
 @register(outgoing=True, pattern="^.name")
 async def update_name(name):
     """ For .name command, change your name in Telegram. """
-    if not name.text[0].isalpha() and name.text[0] not in ("/", "#", "@", "!"):
-        newname = name.text[6:]
-        if " " not in newname:
-            firstname = newname
-            lastname = ""
-        else:
-            namesplit = newname.split(" ", 1)
-            firstname = namesplit[0]
-            lastname = namesplit[1]
+    if name.text[0].isalpha() or name.text[0] in ("/", "#", "@", "!"):
+        return
 
-        await bot(UpdateProfileRequest(
-            first_name=firstname,
-            last_name=lastname))
-        await name.edit(NAME_OK)
+    newname = name.text[6:]
+    if " " not in newname:
+        firstname = newname
+        lastname = ""
+    else:
+        namesplit = newname.split(" ", 1)
+        firstname = namesplit[0]
+        lastname = namesplit[1]
+
+    await bot(UpdateProfileRequest(
+        first_name=firstname,
+        last_name=lastname))
+    await name.edit(NAME_OK)
 
 
 @register(outgoing=True, pattern="^.profilepic$")
 async def set_profilepic(propic):
     """ For .profilepic command, change your profile picture in Telegram. """
-    if not propic.text[0].isalpha() and propic.text[0] not in ("/", "#", "@", "!"):
-        replymsg = await propic.get_reply_message()
-        photo = None
-        if replymsg.media:
-            if isinstance(replymsg.media, MessageMediaPhoto):
-                photo = await bot.download_media(message=replymsg.photo)
-            elif "image" in replymsg.media.document.mime_type.split('/'):
-                photo = await bot.download_file(replymsg.media.document)
-            else:
-                await propic.edit(INVALID_MEDIA)
+    if propic.text[0].isalpha() or propic.text[0] in ("/", "#", "@", "!"):
+        return
+    replymsg = await propic.get_reply_message()
+    photo = None
+    if replymsg.media:
+        if isinstance(replymsg.media, MessageMediaPhoto):
+            photo = await bot.download_media(message=replymsg.photo)
+        elif "image" in replymsg.media.document.mime_type.split('/'):
+            photo = await bot.download_file(replymsg.media.document)
+        else:
+            await propic.edit(INVALID_MEDIA)
 
-        if photo:
-            try:
-                await bot(UploadProfilePhotoRequest(
-                    await bot.upload_file(photo)
-                ))
-                os.remove(photo)
-                await propic.edit(PP_CHANGED)
-            except PhotoCropSizeSmallError:
-                await propic.edit(PP_TOO_SMOL)
-            except ImageProcessFailedError:
-                await propic.edit(PP_ERROR)
-            except PhotoExtInvalidError:
-                await propic.edit(INVALID_MEDIA)
+    if photo:
+        try:
+            await bot(UploadProfilePhotoRequest(
+                await bot.upload_file(photo)
+            ))
+            os.remove(photo)
+            await propic.edit(PP_CHANGED)
+        except PhotoCropSizeSmallError:
+            await propic.edit(PP_TOO_SMOL)
+        except ImageProcessFailedError:
+            await propic.edit(PP_ERROR)
+        except PhotoExtInvalidError:
+            await propic.edit(INVALID_MEDIA)
 
 
 @register(outgoing=True, pattern="^.setbio (.*)")
@@ -106,31 +109,33 @@ async def update_username(username):
 @register(outgoing=True, pattern=r"^.delpfp")
 async def remove_profilepic(delpfp):
     """ For .delpfp command, delete your current profile picture in Telegram. """
-    if not delpfp.text[0].isalpha() and delpfp.text[0] not in ("/", "#", "@", "!"):
-        group = delpfp.text[8:]
-        if group == 'all':
-            lim = 0
-        elif group.isdigit():
-            lim = int(group)
-        else:
-            lim = 1
+    if delpfp.text[0].isalpha() or delpfp.text[0] in ("/", "#", "@", "!"):
+        return
 
-        pfplist = await bot(GetUserPhotosRequest(
-            user_id=delpfp.from_id,
-            offset=0,
-            max_id=0,
-            limit=lim))
-        input_photos = []
-        for sep in pfplist.photos:
-            input_photos.append(
-                InputPhoto(
-                    id=sep.id,
-                    access_hash=sep.access_hash,
-                    file_reference=sep.file_reference
-                )
+    group = delpfp.text[8:]
+    if group == 'all':
+        lim = 0
+    elif group.isdigit():
+        lim = int(group)
+    else:
+        lim = 1
+
+    pfplist = await bot(GetUserPhotosRequest(
+        user_id=delpfp.from_id,
+        offset=0,
+        max_id=0,
+        limit=lim))
+    input_photos = []
+    for sep in pfplist.photos:
+        input_photos.append(
+            InputPhoto(
+                id=sep.id,
+                access_hash=sep.access_hash,
+                file_reference=sep.file_reference
             )
-        await bot(DeletePhotosRequest(id=input_photos))
-        await delpfp.edit(f"`Successfully deleted {len(input_photos)} profile picture(s).`")
+        )
+    await bot(DeletePhotosRequest(id=input_photos))
+    await delpfp.edit(f"`Successfully deleted {len(input_photos)} profile picture(s).`")
 
 
 CMD_HELP.update({

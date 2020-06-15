@@ -21,13 +21,13 @@ except urllib.error.HTTPError:
 	httper=True
 except:
 	wasfine=False
-if wasfine == True:
+if wasfine:
 	print('Meaning of ' + tud + ':')
 	print(mean[0]['def'])
 	print('\nNow for some (probably useless) examples:')
 	print(mean[0]['example'])
 else:
-	if httper == False:
+	if not httper:
 		print('An error occured.')
 		print('Now deal with this very informative error message.')
 	else:

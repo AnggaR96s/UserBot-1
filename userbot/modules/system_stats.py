@@ -45,69 +45,71 @@ async def sysdetails(sysd):
 @register(outgoing=True, pattern="^.botver$")
 async def bot_ver(event):
     """ For .botver command, get the bot version. """
-    if not event.text[0].isalpha() and event.text[0] not in ("/", "#", "@", "!"):
-        if which("git") is not None:
-            invokever = "git describe --all --long"
-            ver = await asyncrunapp(
-                invokever,
-                stdout=asyncPIPE,
-                stderr=asyncPIPE,
-            )
-            stdout, stderr = await ver.communicate()
-            verout = str(stdout.decode().strip()) \
-                + str(stderr.decode().strip())
+    if event.text[0].isalpha() or event.text[0] in ("/", "#", "@", "!"):
+        return
+    if which("git") is not None:
+        invokever = "git describe --all --long"
+        ver = await asyncrunapp(
+            invokever,
+            stdout=asyncPIPE,
+            stderr=asyncPIPE,
+        )
+        stdout, stderr = await ver.communicate()
+        verout = str(stdout.decode().strip()) \
+            + str(stderr.decode().strip())
 
-            invokerev = "git rev-list --all --count"
-            rev = await asyncrunapp(
-                invokerev,
-                stdout=asyncPIPE,
-                stderr=asyncPIPE,
-            )
-            stdout, stderr = await rev.communicate()
-            revout = str(stdout.decode().strip()) \
-                + str(stderr.decode().strip())
+        invokerev = "git rev-list --all --count"
+        rev = await asyncrunapp(
+            invokerev,
+            stdout=asyncPIPE,
+            stderr=asyncPIPE,
+        )
+        stdout, stderr = await rev.communicate()
+        revout = str(stdout.decode().strip()) \
+            + str(stderr.decode().strip())
 
-            await event.edit(
-                "`Userbot Version: "
-                f"{verout}"
-                "` \n"
-                "`Revision: "
-                f"{revout}"
-                "`"
-            )
-        else:
-            await event.edit(
-                "Shame that you don't have git, You're running r2.2a anyway"
-            )
+        await event.edit(
+            "`Userbot Version: "
+            f"{verout}"
+            "` \n"
+            "`Revision: "
+            f"{revout}"
+            "`"
+        )
+    else:
+        await event.edit(
+            "Shame that you don't have git, You're running r2.2a anyway"
+        )
 
 
 @register(outgoing=True, pattern="^.pip(?: |$)(.*)")
 async def pipcheck(pip):
     """ For .pip command, do a pip search. """
-    if not pip.text[0].isalpha() and pip.text[0] not in ("/", "#", "@", "!"):
-        pipmodule = pip.pattern_match.group(1)
-        if pipmodule:
-            await pip.edit("`Searching . . .`")
-            invokepip = f"pip3 search {pipmodule}"
-            pipc = await asyncrunapp(
-                invokepip,
-                stdout=asyncPIPE,
-                stderr=asyncPIPE,
-            )
+    if pip.text[0].isalpha() or pip.text[0] in ("/", "#", "@", "!"):
+        return
+    pipmodule = pip.pattern_match.group(1)
+    if pipmodule:
+        await pip.edit("`Searching . . .`")
+        invokepip = f"pip3 search {pipmodule}"
+        pipc = await asyncrunapp(
+            invokepip,
+            stdout=asyncPIPE,
+            stderr=asyncPIPE,
+        )
 
-            stdout, stderr = await pipc.communicate()
-            pipout = str(stdout.decode().strip()) \
-                + str(stderr.decode().strip())
+        stdout, stderr = await pipc.communicate()
+        pipout = str(stdout.decode().strip()) \
+            + str(stderr.decode().strip())
 
-            await pip.edit(
-                "**Query: **\n`"
-                f"{invokepip}"
-                "`\n**Result: **\n`"
-                f"{pipout}"
-                "`"
-            )
-        else:
-            await pip.edit("`Use .help pip to see an example`")
+        await pip.edit(
+            "**Query: **\n`"
+            f"{invokepip}"
+            "`\n**Result: **\n`"
+            f"{pipout}"
+            "`"
+        )
+    else:
+        await pip.edit("`Use .help pip to see an example`")
 
 
 @register(outgoing=True, pattern="^.alive$")
@@ -130,7 +132,7 @@ async def amireallyaliveuser(username):
     if not username.text[0].isalpha() and username.text[0] not in ("/", "#", "@", "!"):
         message = username.text
         output = '.aliveu [new user without brackets] nor can it be empty'
-        if not (message == '.aliveu' or message[7:8] != ' '):
+        if message != '.aliveu' and message[7:8] == ' ':
             newuser = message[8:]
             global DEFAULTUSER
             DEFAULTUSER = newuser
